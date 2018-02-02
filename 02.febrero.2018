@@ -1,0 +1,111 @@
+#encontar carpeta de trabajo 
+getwd()
+
+#algunos comando
+10+2
+b<-10+2
+b
+
+##########################################################################################
+
+#instalar paqueteria
+install.packages("readxl")
+
+#cargar paqueteria
+library(readxl)
+
+#importar un archivo de excel
+climate<-read_excel("climate.xlsx")
+
+#otra paqueteria para importar
+install.packages("XLConnect")
+
+#para XLConnect
+climate2<-readWorksheetFromFile("climate.xls", sheet=1)
+
+#borrar objetos
+rm(b, climate)
+
+#desplegar las primeras líneas del archivo para identificar el archivo
+head(climate)
+
+# para función arrange se necesita la paqueteria
+install.packages("tidyverse")
+library(tidyr)
+
+#función arrange: ordena de menor a mayor en base a la variable sun
+arrange(climate,sun)
+
+#parctica 1 ejemplo parecido al punto dos
+
+#ejecutar set.seed
+set.seed(50)
+
+#declaramos 2 vectores
+xVec <- sample(0:999,250,replace = TRUE)
+xVec
+yVec <- sample(0:999,250,replace = TRUE)
+yVec
+
+#encontrar longitud de vectores
+length(xVec)
+length(yVec)
+
+#encontar valor de una posición
+xVec[2]
+
+#aplica seno de un vector
+sx <-sin(xVec)
+head(sx)
+
+#visualizar al eliminar la ultima obs de un vector y así se puede seleccionar la obs deseada
+yVec[-length(yVec)]
+
+#visualizar al elimiar la primera entrada del vector x
+xVec[-1]
+
+#ejercicio de sen/cos sen hasta y de n-1 y cos hasta x de n
+
+d<-sin(yVec[-length(yVec)])
+
+e<-cos(xVec[-1])
+
+f<-d/e
+
+#división de vectores ejemplo
+c(2,4,6)/c(2,2,2)
+
+#mostrar primeras obs de la operación
+head(f)
+
+#generar una matriz especifica
+#generar un vector
+x<-1:9
+x
+
+#nombrar categorias 
+names(x)<-x
+names(x)
+
+#multiplicación entrada por entrada
+x*x
+
+#producto tipo matricial
+x %o% x
+
+#crear un vector nombrar categorias y pegar ":" a cada categoria
+y<-2:8;names(y) <- paste(y,":",sep = "")
+
+
+#elebar
+outer(y,x,"^")
+
+#sumar
+outer(y,x,"+")
+
+#generar la matriz
+x<-0:4
+outer(x,x,"+")
+
+
+help(rep)
