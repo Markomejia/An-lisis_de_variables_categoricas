@@ -1,0 +1,45 @@
+#importar un txt, header es para agregar encabezado si es F y dejar así si es T
+tabla1<-read.table("tabla1.txt",header = F)
+#importar tabla de navegador
+tabla2<-read.table("https://www.nrc.gov/reading-rm/doc-collections/event-status/reactor-status/PowerReactorStatusForLast365Days.txt",header = T, sep="|")
+#importar
+#sep= para separar por diagonal
+#strip.white es para no tomar en cuenta los espacios vacios
+#na.strings es para datos que no aplican escriba vacio
+tabla3<-read.table("tabla3.txt",header = F, sep = "/",strip.white = T,na.strings = "Vacio")
+#importar csv separación por coma
+#quote= es para identificar las variables en "" y tomarlas como cadenas de caracter
+#una vez identificadas las cadenas de caracter el stringsAsFactors hace que los tome como una var categorica
+tabla4<-read.csv("tabla4.csv",header = T, quote = "\"",stringsAsFactors = T,strip.white = T)
+#tabla con puntos y comas y algunos espacios vacios
+#row.names es para agregar nombres a las filas(mayusculas) y col.names para las columnas(minusculas)
+tabla5<-read.csv2("tabla5.csv2",header = F,quote = "\"",row.names = c("M","N","O","P","Q"),col.names = c("x","y","z","a","b")
+,fill = T,strip.white = T,stringsAsFactors = T)
+
+#cargar una nueva base 
+#sheet=número de hoja de excel con la que se va a trabajar
+climate<- readWorksheetFromFile("climate.xlsx",sheet=1)
+
+#especificar hasta donde queremos cargar de la base de datos
+climate2<- readWorksheetFromFile("climate.xlsx",sheet=1,startRow=26,endCol=4)
+
+#otra forma para especificar una región
+climate3<- readWorksheetFromFile("climate.xlsx",sheet=1,region="A1:G13")
+
+
+#definir un objeto con todas las hojas de excel y llamarlas cuando sean necesarias
+wb <- loadWorkbook("PortfoliobyLoanStatus.xls")
+
+#trabajar con la primera hoja del wb y comenzar desde la fila 6 en donde comienzan los datos
+direcLoan <- readWorksheet(wb, sheet=1, startRow=6)
+
+#otra paqueteria para trabajar con archivos de excel
+install.packages("xlsx")
+library(xlsx)
+
+#usando la paqueteria anterior sheet pasa a ser sheetindex
+climate4 <- read.xlsx("climate.xlsx",sheetIndex = 1)
+
+
+
+
