@@ -55,10 +55,10 @@ gcartas["Lunes"]
 #matriz de nueve entradas byrow para llenar en base a filas y nrow=número de filas
 matrix(1:9,byrow = T,nrow = 3)
 #crear matriz con vectores
-prod_A<-c(460,998,314.4);prod_B<-c(290,475,247.9);prod_C<-c(309,306,165.8)
+prod_A<-c(460.998,314.4);prod_B<-c(290.475,247.9);prod_C<-c(309.306,165.8)
 ventas<-c(prod_A,prod_B,prod_C)
 #creación
-matriz_productos<-matrix(ventas,nrow = 3,byrow = T,ncol = 2)
+matriz_productos<-matrix(ventas,nrow = 3,byrow = T)
 
 #agregar nombre de columnas y filas
 #columnas
@@ -72,7 +72,7 @@ colnames(matriz_productos)<-region
 
 
 #ventas mundiales
-(ventas_mundiales_prod)<-rowSums(matriz_productos))
+(ventas_mundiales_prod<-rowSums(matriz_productos))
 
 #nuevos productos
 prod_A2<-c(474.5,552.5);prod_B2<-c(310,7338.7);prod_C2<-c(380,468.5)
@@ -163,3 +163,4 @@ subset(planetas_df,anillos==T)
 
 #diametro menor a uno
 subset(planetas_df,diametro<1)
+
