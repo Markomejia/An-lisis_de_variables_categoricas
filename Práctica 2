@@ -69,9 +69,9 @@ min_tree=apply(trees,2,min)
 sum_tree=apply(trees,2,sum)
 
 A=data.frame(mean_tree,min_tree,max_tree,sum_tree)
-
 A
 
+#transponer
 A1=t(A)
 
 A1
