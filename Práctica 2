@@ -1,0 +1,122 @@
+#ejercicio 1 crear un data frame
+#columna id repetir la secuencia 1 2 3 y 4 
+Id<-rep(c(1,2,3,4),each=3)
+
+Letter<-rep(c("a","b","c"),4)
+
+x<-seq(1,43,along.with=Id)
+
+y<-seq(-20,0,along.with=Id)
+
+dfejercicio1<-data.frame(Id,Letter,x,y)
+
+dfejercicio1
+
+#ejercicio 2 obtener un df derivado del df original 
+dfejercicio2<-data.frame(reshape(dfejercicio1,timevar='Letter',idvar='Id',direction='wide'))
+
+dfejercicio2
+
+#ejercicio 3 creación de M por df1 y df2
+Id<-c(1,2,3,4)
+Age<-c(14,12,15,10)
+Sex<-c("F","M","M","F")
+code<-c("a","b","c","d")
+
+df1<-data.frame(Id,Age)
+df1
+
+df2 <-data.frame(Sex,code)
+df2
+
+M<-data.frame(df1,df2)
+M
+
+#ejercicio 4 crear un df por la union de M y df3
+id2<-c(4,3,2,1)
+score<-c(100,98,94,99)
+
+df3<-data.frame(id2,score)
+df3
+
+#reordenando por columna id2 en df3
+N<-data.frame(M,df3[order(df3$id2),])
+N$id2<-NULL
+N
+#otra manera utilizando la función merge
+N1<-merge(M,df3,by.x = 'Id',by.y = 'id2')
+N1
+
+#ejercicio 5
+#1) eliminar las variables sex y code 
+N$Sex<-NULL
+N$code<-NULL
+N
+#2) crear un nuevo data frame para este ejercicio se hace uso de la función stack
+NT<-data.frame(stack(N))
+NT
+
+#ejercicio 6 usando trees
+?trees
+trees
+
+mean_tree=apply(trees,2,mean)
+
+max_tree=apply(trees,2,max)
+
+min_tree=apply(trees,2,min)
+
+sum_tree=apply(trees,2,sum)
+
+A=data.frame(mean_tree,min_tree,max_tree,sum_tree)
+
+A
+
+A1=t(A)
+
+A1
+
+
+#ejercicio 7
+#1)
+A2<-data.frame(A1[order(A1[,1]),])
+A2
+#2)
+row.names(A2)=c('mean','min','max','sum')
+A2
+
+#ejercicio 8 data frame vacia 
+dfv<-data.frame()
+Ints<-integer()
+Logicals<-logical()
+Doubles<-double()
+Characters<-character()
+
+dfv<-data.frame(Ints,Logicals,Doubles,Characters)
+dfv
+
+#ejercicio 9
+X=c(1,2,3,1,4,5,2)
+Y=c(0,3,2,0,5,9,3)
+dxy<-data.frame(X,Y)
+dxy
+#1)buscar duplicados
+
+dxy[duplicated(dxy),]
+
+#2)Manter únicamente las filas que no tengan duplicados
+
+dxy1<- data.frame(unique(dxy))
+dxy1
+dxy2<-data.frame(dxy[!duplicated(dxy), ])
+dxy2
+
+#ejercicio 10 
+class(Titanic)
+
+titanic<-as.data.frame(Titanic)
+titanic
+
+titanic1<-subset(titanic, Class=='1st' & Survived=='No',select=c(Sex,Age,Freq))
+
+titanic1
