@@ -1,0 +1,125 @@
+#1. Crear una funci ́on que regrese el valor absoluto de la diferencia de dos enteros.
+diferencia <- function(x,y)
+{ 
+  diferencia <- (x-y)
+  if(diferencia>=0)
+  {
+    diferencia
+  }
+  
+  else
+  {
+    valorabsoluto<-  -(diferencia)
+    valorabsoluto
+  }
+  
+}
+
+diferencia(100,11)
+diferencia(11,100)
+
+#2. Crear una funci ́on que regrese TRUE si un entero dado est ́a en alguna entrada de un vector.
+valor_entero <- function(entero,vector)
+{ 
+  a<-which(entero %in% vector)
+  b<-length(a)
+  if(b==1)
+  {
+    buscar_e<-"True"
+    return(buscar_e)
+    
+  }
+  else if(b==0){
+    
+    buscar_e<-"False"
+    return(buscar_e)
+    
+  }
+}
+
+x<-c(-10:10)
+valor_entero(1,x)
+valor_entero(100,x)
+
+
+#3. Crear una funci ́on que dado un data frame, imprima en pantalla el nombre de la
+#columna y la clase de datos que contiene (ejm. V1 es numrica)
+
+n <- function(pos,data)
+{ 
+  x<-as.character(names(data[pos]))
+  y<-as.character(class(data[,pos]))
+  nom<-paste(x,"con clase:",y)
+  return(nom)
+}
+
+df<-airquality
+n(5,df)
+
+#4.Crear una funci ́on unico que dado un vector regrese el vector original sin elemento duplicados.
+
+
+nuevo_v <- function(vector)
+{ 
+  unique(vector)
+  v<-vector[!duplicated(vector)]
+  return(v)
+}
+
+x <- rep(c(1:10),times=11)
+x
+nuevo_v(x)
+
+
+#5. Crear una funci ́on que dados un vector y un entero, regrese cu ́antas veces el entero
+#aparece en el vector.
+
+conteo<- function(entero,vector)
+{ 
+  v<-table(vector)
+  cont<-v[names(v)==entero]
+  return(cont)
+}
+
+
+x <- rep(c(1:10),times=11)
+x
+conteo(10,x)
+
+#6. Crear una funci ́on que dado un vector, imprima en pantalla la media y la desviaci ́on
+#est ́andar. De manera opcional, tambi ́en puede desplegar la mediana.
+
+install.packages("stats")
+
+require(stats)
+
+estadisticas <- function(vector, type) {
+  switch(type,
+         media = mean(x),
+         desviación_estandar = sd(x),
+         mediana = median(x))
+}
+x<-c(10:100)
+estadisticas(x, "media")
+estadisticas(x, "desviación_estandar")
+estadisticas(x, "mediana")
+
+#7. Crear una funci ́on que dado un entero, calcule cu ́antos divisores distintos de 1 y de s ́ı
+#mismo tiene. Hacer que la funci ́on despliegue dichos divisores.
+divisores <- function(e)
+{
+  for (i in 1:e) {
+    
+   di<-(e/i)
+   edi<-floor(di)
+   re<-(di-edi)
+     if(re==0)
+     {if(i==1){}
+       else if(i==e){}
+       else{
+      print(i)
+       }
+    }
+  }
+}
+divisores(100)
