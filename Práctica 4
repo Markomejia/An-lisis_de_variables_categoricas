@@ -1,0 +1,184 @@
+---
+title: "Práctica 4"
+author: "Marko Erick Mejia Mañon"
+date: "22 de febrero de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Ejercicio 2
+
+ Considérense los siguientes experimentos para estimar? Para un problema particular:
+ 
+(a) La taza de germinación de cierta clase de semillas después de haber sido plantadas en sustrato. 64 semillas fueron plantadas siguiendo las indicaciones del empaque. En un periodo de 7-14 días (margen dado por el empaque) las semillas debieron haber germinado. Después de 3 semanas de haber plantado las semillas, 48 lograron germinar.
+
+
+(b) Para estimar la proporción de residentes de una ciudad que usan carros "alternativos" (eléctricos, híbridos o a gas natural), una persona registra el número de autos que pasan a través de cierta intersección por un periodo de media hora. Un total de 125 autos pasaron, donde 14 eran "alternativos".
+
+
+Expresar las condiciones que se necesitan para que se satisfagan las 5 hipótesis para usar la distribución binomial.
+
+a) 
+
+1. Las semillas tuvieron el mismo trato bajo las mismas indicaciones para que se cumplan los n ensayos idénticos debieron haberse plantado bajo las mismas condiciones esto se refiere al mismo tipo de suelo, el mismo tipo de luz, clima idéntico, altura entre otros factores de esa forma se cumpliría los n=64 ensayos idénticos.
+
+2. Los posibles resultado dentro de este experimento es que pueden éxito=haber germinado o fracaso=no haber germinado
+
+3. Si a todas las semillas se les trata de la misma manera como dice el empaque no hay factor alguno que influya en su crecimiento derivado de otra semilla y así serian experimentos independientes unos de otros 
+
+4. Si el experimento cumple las condiciones anteriores este punto se cumple ya que son experimentos idénticos e independientes así que se les atribuye la misma probabilidad de éxito a cada uno y permanece constante
+```{r}
+n=64
+w=48
+exito=w/n
+exito
+```
+
+5. La variable aleatoria W es igual a las 48 semillas que germinaron de los 64 experimentos realizados 48 fueron lo que fueron exitosos
+
+b)
+
+1.	Para que el experimento tenga las sea válido debe de cumplir con las misma condiciones por ejemplo que un residente que ya haya cruzado por la intersección no pueda volver a pasar, que solo cuenten con un automóvil del tipo que sea, la zona en la que el investigador se ubicó, sea una ruta transitada por todo tipo de residentes, la hora a la que se realizó la investigación además de saber el total de la población y elegir una muestra adecuada para el experimento
+
+2. Los resultados derivados de este experimento son que el residente cuente con un auto alternativo o no cuente con un auto alternativo
+
+3. Los ensayos son independientes la posibilidad de encontrar un auto alternativo o no alternativo no depende del auto que paso antes por la intersección, de igual forma no influye en el experimento futuro
+
+4. si se cumplen las condiciones anteriores la probabilidad de éxito es la misma en cada experimento ya que cada evento es idéntico he independiente
+
+5. La variable w denota el número de automóviles de tipo alternativos que pasan por la intersección en el tiempo de observación 
+
+##Ejercicio 3
+
+Con respecto a los experimentos del punto anterior, encontrar los intervalos de Wald, Wilson y Agresti-Coull usando los datos dados. Interpretar los intervalos en el contexto de los experimentos.
+
+
+Problema 1 Wald
+```{r}
+w<-48
+n<-64
+alpha<-0.05
+pi.hat<-w/n
+var.wald<-pi.hat*(1-pi.hat)/n
+lower<-pi.hat - qnorm(p = 1-alpha/2) * sqrt(var.wald)
+upper<-pi.hat + qnorm(p = 1-alpha/2) * sqrt(var.wald)
+round(data.frame(lower, upper), 4)
+paste(lower,upper)
+
+```
+La probabilidad de éxito del método Wald se encuentra entre (0.6439-0.8561)
+
+
+Problema 1 Wilson
+```{r}
+w<-48
+n<-64
+alpha<-0.05
+p.tilde<-(w + qnorm(p = 1-alpha/2)^2 /2) / (n + qnorm(p = 1-alpha/2)^2)
+round(p.tilde + qnorm(p = c(alpha/2, 1-alpha/2)) * sqrt(n) / (n+qnorm(p = 1-alpha/2)^2) *
+sqrt(pi.hat*(1-pi.hat) + qnorm(p = 1-alpha/2)^2/(4*n)),4)
+```
+La probabilidad de éxito del método Wilson se encuentra entre (0.6318-0.8399)
+
+
+Problema 1 Agresti-Coull
+```{r}
+w<-48
+n<-64
+alpha<-0.05
+var.ac<-p.tilde*(1-p.tilde) / (n+qnorm(p = 1-alpha/2)^2)
+round(p.tilde + qnorm(p = c(alpha/2, 1-alpha/2)) * sqrt(var.ac),4)
+
+```
+La probabilidad de éxito del método agresti-coull se encuentra entre (0.6309-0.8408)
+
+
+Analizando la longitud de los intervalos tanto la estimación de Wilson como la de agresti-coull está contenida en wald, gracias a estó podemos decir que son más exactas y mejores en base a lo que sabemos de estas metodologías, podemos decir que el mejor es el agresti-coull ya que se aplica a muestra de n>40 ese sería el criterio para elegirlo antes de elegir el método de Wilson.
+
+
+Problema 2 Wald
+```{r}
+w<-14
+n<-125
+alpha<-0.05
+pi.hat<-w/n
+var.wald<-pi.hat*(1-pi.hat)/n
+lower1<-pi.hat - qnorm(p = 1-alpha/2) * sqrt(var.wald)
+upper1<-pi.hat + qnorm(p = 1-alpha/2) * sqrt(var.wald)
+round(data.frame(lower1, upper1), 4)
+paste(lower1,upper1)
+
+```
+La probabilidad de éxito del método Wald se encuentra entre (0.0567-0.1673)
+
+
+Problema 2 Wilson
+```{r}
+w<-14
+n<-125
+alpha<-0.05
+p.tilde<-(w + qnorm(p = 1-alpha/2)^2 /2) / (n + qnorm(p = 1-alpha/2)^2)
+round(p.tilde + qnorm(p = c(alpha/2, 1-alpha/2)) * sqrt(n) / (n+qnorm(p = 1-alpha/2)^2) *
+sqrt(pi.hat*(1-pi.hat) + qnorm(p = 1-alpha/2)^2/(4*n)),4)
+```
+La probabilidad de éxito del método Wilson se encuentra entre (0.0679-0.1792)
+
+
+Problema 2 Agresti-Coull
+```{r}
+w<-14
+n<-125
+alpha<-0.05
+var.ac<-p.tilde*(1-p.tilde) / (n+qnorm(p = 1-alpha/2)^2)
+round(p.tilde + qnorm(p = c(alpha/2, 1-alpha/2)) * sqrt(var.ac),4)
+
+```
+La probabilidad de éxito del método agresti-coull se encuentra entre (0.0667-0.1804)
+
+
+En este caso los intervalos con menor longitud son los de wald por lo que podemos deducir que los datos pueden ser muy bien ajustados a una distribución normal estándar.
+
+
+
+
+##Ejercicio 4
+4. Suponga que se toman muestras a 750 mujeres embarazadas para estimar la presencia
+de clamidia en ese sector de la población. De las 750 mujeres, 48 dieron positivo para
+la enfermedad. Con esta información:
+
+
+(a) Describir los supuestos que se tendrían que hacer para poder usar la distribución 
+binomial para esta muestra.
+
+1. Para que sean 750 ensayos idénticos deben de tener las misma condiciones de vida las mujeres de ese sector, limpieza, acceso al médico para revisiones, que sus parejas tengan las mismas condiciones  y no tomar en cuenta a las personas infectadas en pareja por lo que es difícil llegar a esas condiciones.
+
+2. Existe en resultado que tenga clamidia o que no tenga por lo que cumplen con tener dos posibles resultados
+
+3. Los ensayos pueden ser algunos dependientes de otros ya que si existe el caso en el que sean pareja lo más probable es que también este infectada de la misma no el hecho de vivir en el mismo sector puede influir en que una o más tengan clamidia.
+
+4. La probabilidad de éxito a mi punto de vista no permanece constante ya que son demasiados factores los que influyen y varían mucho incluso por los hábitos de una persona a otra.
+
+5. La variable aleatoria de interés W es igual a 48 el número de las mujeres con presencia de clamidia.
+
+
+(b) Suponiendo que se cumplen los supuestos del punto anterior, encuéntrese un
+intervalo de confianza para la presencia de clamidia. Utilícese el intervalo m ??as
+adecuado para este problema e interprétense los resultados.
+
+En el caso de Wald existen diversos estudios en donde se menciona que esta metodología es utilizada por su simplicidad pero no es tan certero con Wilson o agresti, ya que su varianza es muy diferente con respecto a las demás pruebas siendo más grande y menos certera además que se recomienda para muestra pequeñas.
+
+El método para determinar intervalos de confianza de Wilson queda descartado ya que n>40 y las probabilidades de p van aumentando a medida que aumenta la muestra en este caso la muestra es muy grande para realizar la prueba así que se recomienda el uso de Agresti-coull, en la mayoría de ocasiones lo compara mucho con Wilson porque prácticamente hacen lo mismo a diferencia que influye mucho el tamaño de la muestra.
+
+
+Agresti-Coull
+```{r}
+w<-48
+n<-750
+alpha<-0.05
+var.ac<-p.tilde*(1-p.tilde) / (n+qnorm(p = 1-alpha/2)^2)
+round(p.tilde + qnorm(p = c(alpha/2, 1-alpha/2)) * sqrt(var.ac),4)
+
+```
