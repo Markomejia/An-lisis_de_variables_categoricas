@@ -1,0 +1,164 @@
+---
+title: "Clase"
+author: "Marko"
+date: "1 de marzo de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+c.table<-array(data = c(251, 48, 34, 5), dim = c(2,2), dimnames =
+list(Primero = c("éxito", "fracaso"),Segundo = c("éxito", "fracaso")))
+list(Primero = c("éxito", "fracaso"), Segundo = c("éxito", "fracaso"))
+```
+
+Tabla de contingencia
+```{r}
+c.table
+```
+
+Estimados
+```{r}
+pi.hat.table<-c.table/rowSums(c.table)
+pi.hat.table
+```
+
+
+Intervalo de confianza binarias
+```{r}
+alpha<-0.05
+pi.hat1<-pi.hat.table[1,1]
+pi.hat2<-pi.hat.table[2,1]
+#estadistico wald
+var.wald<-pi.hat1*(1-pi.hat1)/sum(c.table[1,])+pi.hat2*(1-pi.hat2)/sum(c.table[2,])
+#diferencia más z intervalo wald
+pi.hat1-pi.hat2+qnorm(p=c(alpha/2,1-alpha/2))*sqrt(var.wald)
+```
+
+Intervalo de Agresti Caffo
+```{r}
+pit1<- (c.table[1,1]+1)/(sum(c.table[1,])+2)
+pit2<- (c.table[2,1]+1)/(sum(c.table[2,])+2)
+var.AC<-pit1*(1-pit1)/(sum(c.table[1,])+2)+pit2*(1-pit2)/(sum(c.table[2,])+2)
+#Intervalo de AC
+pit1-pit2+qnorm(p=c(alpha/2,1-alpha/2))*sqrt(var.AC)
+
+```
+Como exite el 0 no hay evidencia que el primer tiro influya en el segundo tiro
+
+
+
+##Otra forma de hacer los intervalos
+```{r}
+w1<-251
+n1<-285
+w2<-48
+n2<-53
+pi.hat1<-w1/n1
+pi.hat2<-w2/n2
+var.wald<- pi.hat1*(1-pi.hat1)/n1+pi.hat2*(1-pi.hat2)/n2
+pi.hat1-pi.hat2+qnorm(p=c(alpha/2,1-alpha/2))*sqrt(var.wald)
+```
+
+
+
+##
+
+```{r}
+alpha<-0.05
+pi1<-0.2
+pi2<-0.4
+n1<-10
+n2<-10
+posibles combinaciones
+w.all<-expand.grid(w1=0:n1,w2=0:n2)
+
+#proporciones muestrales lo argumento que son iguales a ellos se definen dentro del comando
+pi.hat1<-(0:n1)/n1
+pi.hat2<-(0:n2)/n2
+pi.hat.all<-expand.grid(pi.hat1=pi.hat1,pi.hat2=pi.hat2)
+
+#como son independientes se calculan probabilidades separadas y se multiplican
+prob.w1 <- dbinom(x = 0:n1 , size = n1 , prob = pi1)
+prob.w2 <- dbinom(x = 0:n2 , size = n2 , prob = pi2)
+prob.all <- expand.grid(prob.w1=prob.w1 , prob.w2=prob.w2)
+#probabilidad conjunta por combinación 
+pmf <- prob.all$prob.w1*prob.all$prob.w2
+#primeros datos guardados en un data frame solo con cuatro sifras significativas
+head(data.frame(w.all,pmf = round(pmf,4)))
+#ultimas posibles combinaciones
+tail(data.frame(w.all,pmf = round(pmf,4)))
+```
+
+#nivel de confianza para el verdadero intervalo de Wald
+
+```{r}
+var.wald <- pi.hat.all[,1]*(1-pi.hat.all[,1])/n1+pi.hat.all[,2]*(1-pi.hat.all[,2])/n2
+lower <- pi.hat.all[,1]-pi.hat.all[,2] - qnorm(p=1-alpha/2)*sqrt(var.wald)
+upper <- pi.hat.all[,1]-pi.hat.all[,2] + qnorm(p=1-alpha/2)*sqrt(var.wald)
+#verificar que intervalos contienen la diferencia de pi1 y pi2
+save <- ifelse(test = pi1-pi2 > lower,yes = ifelse(test = pi1-pi2 < upper, yes = 1, no=0), no=0 )
+
+#en cuantos intervalos se encuentra la diferencia sumando el producto de entrad por entrada de dos arreglos
+sum(save*pmf)
+
+data.frame(w.all, round(data.frame(pmf, lower, upper),4), save)[1:15,]
+```
+
+
+
+## Verdadero nivel de confianza Agresti Caffo
+```{r}
+ptilde1 <- (0:n1+1)/(n1+2)
+ptilde2 <- (0:n2+1)/(n2+2)
+ptilde.all <- expand.grid(ptilde1 = ptilde1 , ptilde2 = ptilde2)
+var.AC<-ptilde.all[,1]*(1-ptilde.all[,1])/(n1+2)+ptilde.all[,2]*(1-ptilde.all[,2])/(n2+2)
+lower.ac <- ptilde.all[,1]-ptilde.all[,2] - qnorm(p = 1-alpha/2)*sqrt(var.AC)
+upper.ac <- ptilde.all[,1]-ptilde.all[,2] + qnorm(p = 1-alpha/2)*sqrt(var.AC)
+save.ac <- ifelse(test = pi1-pi2 > lower.ac,yes = ifelse(test = pi1-pi2 < upper.ac, yes = 1, no=0), no=0 )
+sum(save.ac*pmf)
+```
+
+
+##Prueba de hipotesis
+H0: pi1 - pi2 = 0
+Ha: pi1 - pi2 != 0
+
+comparando con una normal estandar
+si es 0 tienen la misma distribución
+
+
+```{r}
+c.table
+```
+
+```{r}
+prop.test(x = c.table , conf.level = 0.95, correct = FALSE)
+```
+
+Si es mayor a 0.05 no hay evidencia estadistica para rechazar la H0
+
+
+
+Prueba 
+```{r}
+pi.bar <- colSums(c.table)[1]/sum(c.table)
+
+log.lambda <- c.table [1,1]*log(pi.bar/pi.hat.table[1,1])+c.table[1,2]*log((1-pi.bar)/(pi.hat.table[1,1]))
++c.table [2,1]*log(pi.bar/pi.hat.table[2,1])+c.table[2,2]*log((1-pi.bar)/(pi.hat.table[2,1]))
+
+test.stat <- -2*log.lambda
+crit.val <- qchisq(p = 0.95 , df = 1)
+p.val <- 1-pchisq(q =test.stat, df=1)
+round(data.frame(pi.bar, test.stat, crit.val, p.val, row.names = NULL),4)
+```
+
+```{r}
+install.packages("vcd")
+library(vcd)
+assocstats (x =c.table)
+```
+
