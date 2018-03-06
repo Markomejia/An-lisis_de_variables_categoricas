@@ -1,0 +1,77 @@
+#definir un objeto requerimos que sea un arreglo de 2x2 y etiquetarlas
+c.table<- array(data = c(57,142,200688,201087),dim = c(2,2), dimnames = list(Tratamiento = c("Vacuna","Palcebo"),
+                                                                              Resultado = c("Polio","Sin Polio")))
+c.table
+
+#pi con acento sircunflejo proporción muestral exito/total de fila
+pi.hat.table<-c.table/rowSums(c.table)
+#tabla en terminos de probabilidades
+pi.hat.table
+#verificar que la suma sea 1 por grupo osea el total de 2
+sum(pi.hat.table)
+
+#primer grupo
+pi.hat1<-pi.hat.table[1,1]
+pi.hat1
+
+#segundo grupo
+pi.hat2<-pi.hat.table[2,1]
+pi.hat2
+
+#definimos un alpha
+alpha<-0.05
+
+#intervalo de confianza de Wald
+pi.hat1-pi.hat2 + qnorm(p = c(alpha/2,1-alpha/2))*sqrt(pi.hat1*(1-pi.hat1)/sum(c.table[1,])+pi.hat2*(1-pi.hat2)/sum(c.table[2,]))
+                                                       
+#intervalo de confianza de Agresti-Caffo
+pi.tilde1<-(c.table[1,1]+1)/(sum(c.table[1,])+2)
+pi.tilde2<-(c.table[2,1]+1)/(sum(c.table[2,])+2)
+
+pi.tilde1-pi.tilde2 + qnorm(p = c(alpha/2,1-alpha/2))*sqrt(pi.tilde1*(1-pi.tilde1)/(sum(c.table[1,])+2)
+                                                          +pi.tilde2*(1-pi.tilde2)/(sum(c.table[2,])+2))
+
+#el cero no esta presente por lo que no hay evidencia de que las proporciones sean diferentes
+#por lo que se calculara el riesgo relativo donde el exito es igual a "polio"
+
+RR <- round(pi.hat1/pi.hat2,4)
+RR
+#las porbabilidades de desarrollar polio con vacuna es del 40% con base a los que se les aplicaron placebos
+# es más probable contraer polio si se administra placebo a que se le administre vacuna
+
+#intervalo de Wald para RR sircunflejo
+n1<-sum(c.table[1,])
+n2<-sum(c.table[2,])
+#dentro del radical
+var.log.rr<-1/c.table[1,1]-1/sum(c.table[1,])+1/c.table[2,1]-1/sum(c.table[2,])
+ci<-exp( log(pi.hat1/pi.hat2)+qnorm(p = c(alpha/2,1-alpha/2))*sqrt(var.log.rr))
+round(ci,4)
+
+#con 95% de confianza la proporción de desarrollar polio si no se usa la vacuna esta entre un 30% a 55%
+
+# RR donde éxito="Sin polio" 
+#rev intercambiar las posiciones de los limites
+rev(round(1/ci,4))
+#si se les aplica vacuna hay de 1.82 a 3.37 veces más de no desarrollar polio
+
+#momios
+# si la razon de momios es igual a 1 los momios de exito son independientes de la muestra es la misma probabilidad de momio
+# si la razon de momios es mayor a 1 entonces los momios de exito son mayores para el primer grupo
+# si la razon de momios es menorr a 1 entonces los momios de exito son mayores para el segundo grupo
+OR.hat <- (c.table[1,1]*c.table[2,2])/(c.table[2,1]*c.table[1,2])
+round(OR.hat,4)
+# para el grupo dos los momios son más grandes
+#los momios del grupo 1 son solo el 40% para el grupo 2
+#intercambiando los papeles
+round(1/OR.hat,4)
+#los momios para el grupo 1 son 2.48 veces que para el grupo 2 intercambiando el número de grupos
+#intervalo de wald para momios
+var.log.or<-1/c.table[1,1]+1/c.table[1,2]+1/c.table[2,2]+1/c.table[2,1]
+OR.CI<-exp(log(OR.hat)+qnorm(p = c(alpha/2,1-alpha/2))*sqrt(var.log.or))
+#intervalo en terminos de desarrollar polio para los que se les aplico placebo la probabilidad es más alta de 30% a 50% que a los que se les aplico vacuna
+round(OR.CI,4)
+# como el 1 no esta la probabilidad de desarrollar polio es diferente con base en que se aplique vacuna o placebo
+
+#intervalo en termino de no desarrollar polio
+rev(round(1/OR.CI,4))
+#en terminos de protección contra el polio si se administra una vacuna la probabilidad de no desarrollar polio esta entre 1.82 y 3.38 veces más alta
