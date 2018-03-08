@@ -1,0 +1,202 @@
+---
+title: "Práctica 5"
+author: "Marko Erick Mejia Mañon"
+date: "7 de marzo de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Ejercicio 1
+
+```{r}
+c.table<-array(data = c(251, 48, 34, 5), dim = c(2,2), dimnames =
+list(Primero = c("éxito", "fracaso"),Segundo = c("éxito", "fracaso")))
+list(Primero = c("éxito", "fracaso"), Segundo = c("éxito", "fracaso"))
+
+c.table
+
+```
+
+```{r}
+pi.hat.table<-c.table/rowSums(c.table)
+pi.hat.table
+sum(pi.hat.table)
+
+pi.hat1<-pi.hat.table[1,1]
+pi.hat1
+
+pi.hat2<-pi.hat.table[2,1]
+pi.hat2
+
+alpha<-0.05
+
+```
+
+
+
+#Riesgo relativo
+La proporción de exito del primer tiro es el 97.24% con respecto al segundo tiro
+
+```{r}
+RR <- round(pi.hat1/pi.hat2,4)
+RR
+```
+
+
+#intervalo de confianza
+```{r}
+ci<-exp( log(pi.hat1/pi.hat2)+qnorm(p = c(alpha/2,1-alpha/2))*sqrt(1/c.table[1,1]-1/sum(c.table[1,])+1/c.table[2,1]-1/sum(c.table[2,])))
+round(ci,4)
+```
+
+Con un 95% de confianza la posibilidad de exito en el segundo tiro dado que fallo en el primero es de 0.8827 a 1.0713 más  que si falla
+
+
+#Momios
+
+```{r}
+OR.hat <- (c.table[1,1]*c.table[2,2])/(c.table[2,1]*c.table[1,2])
+round(OR.hat,4)
+```
+
+los momios del primer tiro son el 76.9% de los momios del segudo tiro
+
+```{r}
+var.log.or<-1/c.table[1,1]+1/c.table[1,2]+1/c.table[2,2]+1/c.table[2,1]
+OR.CI<-exp(log(OR.hat)+ qnorm(p=c(alpha/2,1-alpha/2))*sqrt(var.log.or))
+round(OR.CI,4)
+```
+
+No hay diferencia en el resultado del segundo tiro si anoto o no en el primer tiro ya que es independiente al resultado previamente obtenido
+
+##Ejercicio 2
+```{r}
+c.table<-array(data = c(22,10,4,6),dim = c(2,2),dimnames = list(Estrategia=c("Sin tiempo fuera","Tiempo Fuera"),GoldeCampo=c("Éxito","Fracaso")))
+c.table
+
+pi.hat.table<-c.table/rowSums(c.table)
+pi.hat1<-pi.hat.table[1,1]
+pi.hat2<-pi.hat.table[2,1]
+alpha<-0.05
+
+pi.hat.table
+pi.hat1
+pi.hat2
+
+````
+
+
+# Wald
+```{r}
+var.wald<-pi.hat1*(1-pi.hat1) / sum(c.table[1,]) + pi.hat2*(1-pi.hat2) / sum(c.table[2,])
+pi.hat1 - pi.hat2 + qnorm(p = c(alpha/2, 1-alpha/2)) * sqrt(var.wald)
+```
+
+
+
+#A-C
+```{r}
+pi.tilde1<-(c.table[1,1]+1)/(sum(c.table[1,])+2)
+pi.tilde2<-(c.table[2,1]+1)/(sum(c.table[2,])+2)
+var.AC<-pi.tilde1*(1-pi.tilde1) / (sum(c.table[1,])+2) + pi.tilde2*(1-pi.tilde2)/(sum(c.table[2,])+2)
+pi.tilde1 - pi.tilde2 + qnorm(p = c(alpha/2, 1-alpha/2)) * sqrt(var.AC)
+```
+
+Como esta contenido el cero en ambos intervalos no hay evidencia que demuestre que afecte tomar o no el tiempo extra para el gol de campo
+
+
+
+##PRUEBA SCORE 
+```{r}
+pibarra<-(pi.hat1+pi.hat2)/(sum(c.table[1,])+sum(c.table[2,]))
+radi<-pibarra*(1-pibarra)*((1/sum(c.table[1,]))+ (1/ sum(c.table[2,])))
+score<-(pi.hat1-pi.hat2)/(sqrt(radi))
+pibarra
+score
+```
+
+## PRUEBA CHI^2
+
+```{r}
+w1<-c.table[1,1]
+w2<-c.table[2,1]
+n1<-sum(c.table[1,])
+n2<-sum(c.table[2,])
+ji<-((w1-(n1*pibarra))^2)/(n1*pibarra*(1-pibarra))+((w2-(n2*pibarra))^2)/(n2*pibarra*(1-pibarra))
+ji
+```
+
+
+## PRUEBA LRT
+
+```{r}
+L<-(-2)*( w1*log(pibarra/pi.hat1) + (n1-w1)*log((1-pibarra) /(1-pi.hat1))+ w2*log(pibarra/pi.hat2) + (n2-w2)*log((1-pibarra) /(1-pi.hat2))         )
+L
+```
+
+## RIESGO RELATIVO
+```{r}
+RR<-round(pi.hat1/pi.hat2,4)
+RR
+```
+
+ La proporción del grupo que no dio tiempo fuera es 1.3538 con base a lo que si dieron tiempo fuera
+
+
+#Intervalo riesgo relativo
+
+```{r}
+
+var.log.rr<-1/c.table[1,1]-1/sum(c.table[1,])+1/c.table[2,1]-1/sum(c.table[2,])
+ci<-exp(log((pi.hat1/pi.hat2)+ qnorm(p=c(alpha/2,1-alpha/2))*sqrt(var.log.rr)))
+round(ci,4)
+
+```
+
+Los que no dan tiempo fuera tienes 76.73% de probabilidad de acertar el tiro contra los que si lo dan
+
+
+##Momios
+
+```{r}
+OR.hat<-(c.table[1,1]*c.table[2,2])/(c.table[2,1]*c.table[1,2])
+round(OR.hat,4)
+```
+
+Los momios del gol de campo para los que no se dio tiempo fuera son 3.3 veces los momios para los casos en que se dio tiempo fuera.
+
+##Wald para momios
+
+```{r}
+var.log.or<-1/c.table[1,1]+1/c.table[1,2]+1/c.table[2,2]+1/c.table[2,1]
+OR.ci<-exp(log(OR.hat)+ qnorm(p=c(alpha/2,1-alpha/2))*sqrt(var.log.or))
+round(OR.ci,4)
+```
+
+
+Como 1 está dentro del intervalo  es posible que no haya diferencia de anotar gol de campo si se da o no un tiempo fuera.
+
+
+Con base en los resultados anteriores observamos que no dar tiempo fuera aumenta la probabilidad del gol de campo en un 76.73% y que hay 3.3 veces más de probabilidad en meter un gol de campo sin dar tiempo fuera por lo que es viable enfriar al pateador utilizando esta estrategia
+
+
+
+##EJERCICIO 3
+
+El ratio de momios es 0 o infinito si cualquier nij = 0 e indefinido si ambas entradas en una fila o una columna son cero
+
+Si lo anterior se cumple se calcula de la siguiente manera:
+
+
+                 θ = (n11 + 0.5)(n22 + 0.5)/(n12 + 0.5)(n21 + 0.5)
+
+
+Se le suma 1/2 a cada celda para poder relizar los calculos correspondientes
+
+
+
+
+
