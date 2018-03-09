@@ -1,0 +1,80 @@
+
+#nueva ventana con altura y ancho
+x11(width = 7, height = 6, pointsize = 12)
+
+#grficar una función en primer argumento despues rangos en los ejes
+curve(expr = x^2 , xlim = c(-1,2), col = "red" , main = "Gráfica de f(x)=x^2",
+      xlab = "x", ylab = "f(x)", panel.first = grid( col = "gray", lty = "dotted"))
+
+#gráficar un modelo de regresión logística
+x11(width = 7, height = 6, pointsize = 12)
+#dividir la ventana de graficación 
+par(mfrow = c(1,2))
+#regresión simple
+beta0<-1
+beta1<-0.5
+#regresión logística con fn. exponencial #expression es para un titulo más limpio, # en frac el prime e es el denominador y el segundo es numerador
+curve(expr = exp(beta0+beta1*x)/(1+exp(beta0+beta1*x)),xlim = c(-15,15) , col = "black", 
+      main = expression(pi == frac(e^(1+.05*x[1])/e^(1+.05*x[1])),xlab = expression(x[1]), ylab = expression(pi))
+      
+      
+      
+ #si el archivo se encuentra en la carpeta de trbajo
+ placekick<-read.table(file = "Placekick.csv", header = T, sep = ","))
+#si se encuentra en otra ubicación
+ placekick<-data.frame(read.csv("C:\\Users\\USUARIO\\Downloads\\Placekick.csv"))
+#ultimos datos
+ tail(placekick)
+
+#modelo general linealizado
+#formula = quienes son dependientes e independientes si el gol fue bueno en terminos de la distancia dep.good~indep.distancia
+#familia = que función queremos utilizar no interesa los resultado binomiales
+mod.fit <- glm( formula = good ~ distance , family = binomial(link = logit), data = placekick)
+mod.fit
+#beta0 = 5.812 y beta1 = -0.115
+#la porbabilidad de anotar decrece cuando la distancia aumenta se observa por beta1
+#el comando glm guarda la siguiente información
+names(mod.fit)
+mod.fit$coefficients
+
+
+#modelo general linealizado
+class(mod.fit)
+#glm = modelo lineal generalizado
+#lm = modelo lineal
+
+#metodos que utiliza glm estas opciones se puden sustituir por el link
+methods(class = glm)
+
+#para un modelo lineal
+methods(class = lm)
+
+
+#que dependa de dos variables conservamos la fun. de enlace logit
+mod.fit2 <- glm( formula = good ~ distance + change , family = binomial(link = logit), data = placekick)
+mod.fit2$coefficients
+#la probabilidad de anotar decrece si aumenta la distancia o cambia la puntuación ya que son negativos
+
+summary(mod.fit)
+
+#matriz de varianza y covarianza
+temp<-summary(mod.fit)
+names(temp)
+temp$coefficients
+#matriz de los coeficientes b0 y b1
+vcov(mod.fit)
+#mostrar la varianza de beta1
+vcov(mod.fit)[2,2]
+
+#Función de log-verosimilitud de la función de verosimilitud obtener el logaritmo
+logL <- function(beta,x,y)
+{
+pi<-exp(beta[1]+beta[2]*x)/(1+exp(beta[1]+beta[2]*x))
+sum(y*log(pi)+(1-y)*log(1-pi))
+}
+logL(beta = mod.fit$coefficients,x = placekick$distance, y = placekick$good )
+
+#para una grafica en tres dimensiones
+install.packages("rgl")
+library(rgl)
+
