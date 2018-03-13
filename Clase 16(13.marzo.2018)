@@ -1,0 +1,149 @@
+placekick<-data.frame(read.csv("C:\\Users\\USUARIO\\Downloads\\Placekick.csv"))
+
+#modelo generalizado
+mod.fit <- glm(good ~ distance, binomial(link = logit), placekick)
+#desplegar atributos del objeto mod.fit
+names(mod.fit)
+#como b1 tiene coeficiente negativo a medida que aumenta la distancia la probabilidad disminuye
+mod.fit$coefficients
+
+#definimos las betas
+beta_0.hat <- mod.fit$coefficients[1]
+beta_1.hat <- mod.fit$coefficients[2]
+
+#valores estimados de yi-observación = pi
+pi.hat <- mod.fit$fitted.values
+
+#saber la longitud
+length(pi.hat)
+
+#residuos diferencian entre la observación y su estimado yi-pi
+length(mod.fit$residuals)
+head(mod.fit$residuals)
+
+#para que sirve cada atributo
+help("glm")
+
+#clase de modelo
+class(mod.fit)
+
+#funciones dentro del modelo
+methods(class = glm)
+methods(class = lm)
+
+#resumen del modelo
+summary(mod.fit)
+
+#matriz de varianza covarianza
+vcov(mod.fit)
+
+#que dependa de dos variables conservamos la fun. de enlace logit
+mod.fit2 <- glm( formula = good ~ distance + change , family = binomial(link = logit), data = placekick)
+mod.fit2$coefficients
+#la probabilidad de anotar decrece si aumenta la distancia o cambia la puntuación ya que son negativos
+
+#los valores que maximizan la fn. de verosimilitud son los valores que dan los parametros de regresión
+#Función de log-verosimilitud de la función de verosimilitud obtener el logaritmo
+logL <- function(beta,x,y)
+{
+  pi<-exp(beta[1]+beta[2]*x)/(1+exp(beta[1]+beta[2]*x))
+  sum(y*log(pi)+(1-y)*log(1-pi))
+}
+
+#evaluar la función de verosimilitud en pi.hat
+logL(beta = mod.fit$coefficients,x = placekick$distance, y = placekick$good )
+
+#verificar nuestra función con una función ya definida
+logLik(mod.fit)
+
+#maximizar nuestra función y verificar que sean las beta
+#vamos a dar valores iniciales para despues maximizar
+reg.mod <- lm(good ~ distance,placekick)
+reg.mod$coefficients
+
+#optimización (primer argumento los valores iniciales, que función vamos a optimizar, que camino tomara para optimizar
+#variable independiente, variable dependiente, optim minimiza asi que se usa control para maximizar, metodo simpsom rapson)
+mod.fit.optim<-optim(reg.mod$coefficients, logL, hessian = T, x=placekick$distance, y=placekick$good, control = list(fnscale=-1), method = "BFGS")
+#optenemos los valores de los parametros maximizados y son los parametros
+mod.fit.optim$par
+mod.fit$coefficients
+
+#convergencia
+mod.fit.optim$convergence
+
+#obtener la inversa de una matriz con solve
+solve(mod.fit.optim$hessian)
+
+#comparamos con varianza y covarianza
+vcov(mod.fit)
+
+
+#graficaremos beta_0 en varios valores se visualizan por separado par no tener tantos problemas
+beta0.values <- seq(from = -5, to = 18, by = 0.1)
+beta1.values <- seq(from = -0.65, to = 0.25, by = 0.01)
+#degfinir una función para facilitar la graficación
+count<-1
+save.logL <- numeric(length(beta0.values)*length(beta1.values))
+for (beta0 in beta0.values){
+  for (beta1 in beta1.values) {
+    save.logL[count]<-logL(beta = c(beta0,beta1),x=placekick$distance, y=placekick$good)
+    count<-count+1
+    
+  }
+}
+max(save.logL)
+
+#para una grafica en tres dimensiones
+install.packages("rgl")
+library(rgl)
+
+#terminar las graficas y los codigods las intersección que se muestra en las curvas de nivel es el punto que maximiza
+
+
+###
+
+#vamos a redefinir los datos en forma binomial
+#proporción de exitos para cada distancia
+#por cada ensayo
+w <- aggregate(good ~ distance, placekick, sum)
+#por todo
+n <- aggregate(good ~ distance, placekick, length)
+
+#vamos a estructurarlo
+w.n <- data.frame(distance = w$distance, success = w$good, trials = n$good, proportion = round(w$good/n$good,4))
+head(w.n)
+tail(w.n)
+
+#comparar si da los mismos resultados usando los dos data.frame
+mod.fit.bin <- glm(success/trials ~ distance, family = binomial(link = logit), w.n, trace = T)
+summary(mod.fit.bin)
+
+#falto tomar en cuenta en pesos los ensayos
+mod.fit.bin <- glm(success/trials ~ distance,  weights = trials, binomial(link = logit), w.n, trace = T)
+summary(mod.fit.bin)
+summary(mod.fit)
+
+#si dan los mismos resultados
+
+#que tan importante es una variable en un modelo
+
+#para hacer pruebas de hipotesis
+install.packages("car")
+library(car)
+
+#modelo que incluya "change" y "distance"
+mod.fit2 <- glm( formula = good ~ distance + change , family = binomial(link = logit), data = placekick)
+
+#obtener la prueba de wald
+round(summary(mod.fit2)$coefficients,4)
+#si change-> Pr(>|z|) si es menor a 0.05 se rechaza pero si se toma 0.01 la variable change si es de importancia
+
+#de la paqueteria car usaremos anova para obtener prueba de wald 
+Anova(mod.fit2, test.statistic = "Wald")
+
+#prueba de razon de verosimilitud
+Anova(mod.fit2, test.statistic = "LR")
+
+#otra forma sin la paqueteria car la prueba es chisq ya que la LR aproxima a una ji 
+anova(mod.fit2, test = "Chisq")
+
