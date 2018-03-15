@@ -1,0 +1,138 @@
+placekick<-data.frame(read.csv("C:\\Users\\USUARIO\\Downloads\\Placekick.csv"))
+#repaso clas eanterior
+mod.fit <- glm(good ~ distance, binomial(link = logit), placekick)
+w <- aggregate(good ~ distance, placekick, sum)
+n <- aggregate(good ~ distance, placekick, length)
+w.n <- data.frame(distance = w$distance, success = w$good, trials = n$good, proportion = round(w$good/n$good,4))
+mod.fit2 <- glm( formula = good ~ distance + change , family = binomial(link = logit), data = placekick)
+
+#install.packages("car")
+#library(car)
+
+
+#anova con prueba de razo de verosimilitud con el text
+#
+#H0: logit(pi)=beta0
+#Ha: logit(pi)=beta0+beta1change
+anova(mod.fit2, test="Chisq")
+#como la variable change en pr() es menor a 0.05 es de importancia rechazando la H0
+#se puede hacer una segunda lectura con otra prueba
+#H0:b0+b1change
+#Ha:b0+b1change+b2distance
+#hay evidencia suficiente para decir que la variable distance es de importancia
+
+#usando la hipotesis nula con distancia
+#haremos una comparación de H0:b0+b1distance con Ha:b0+b1ditance+b2change
+#prueba LRT
+anova(mod.fit,mod.fit2,test = "Chisq")
+
+#otra comparación con H0:b0
+mod.fith0 <- glm(good ~ 1, binomial(link = logit), placekick)
+mod.fitha <- glm(good ~ change, binomial(link = logit), placekick)
+anova(mod.fith0,mod.fitha,test = "Chisq")
+
+#prueba LRT manual
+#parametros del modelo ajustados
+pi.hat.h0 <- mod.fith0$fitted.values
+pi.hat.ha <- mod.fitha$fitted.values
+y <- placekick$good
+
+#-2og(Lambda)
+stat <- -2*sum(y*log(pi.hat.h0/pi.hat.ha)+(1-y)*log((1-pi.hat.h0)/(1-pi.hat.ha)))
+stat
+
+#valor p probabilidad de obsewrvar un valor mayor al estadistico de prueba
+pvalues <- 1-pchisq(q =stat, df = 1)
+data.frame(stat, pvalues)
+
+#razon de momios la probabilidad de exito entre la probabilidad de fracaso
+#seguimos viendo modelos de regresión logistica
+
+
+#ejemplos usando momios
+mod.fit$coefficients[2]
+mod.fit
+
+#exp(b1) -> c=1
+#razon del momio de la variable x+1 de la variable x
+exp(mod.fit$coefficients[2])
+#que tanto incrementan los momios cuando incrementan las yardas de una en una
+
+#queremos descubrir como se mueven los momios respecto al cambio en las distancias
+#exp(-10*b1)=oddsx-10/oddsx
+#como cambian los momios si se reducen en 10 yardas
+exp(-10*mod.fit$coefficients[2])
+
+#el estimado de los momios aumentan 3.16 veces más probable que acertemos el gol de campo 
+#por cada 10 yardas que se reduscan
+#momios<1 reducción en la probabilidad y momios>1 aumento en la probabilidad de exito
+
+#intervalo de Wald 
+beta.ci <- confint.default(mod.fit, parm = "distance", level = 0.95)
+beta.ci
+
+#intervalo de confianza cuando el factor c=1 cuando incrementamos la distancia en una yarda
+exp(beta.ci)
+#la reazon de momios se reduce entre los valores del intervalo
+
+#aumentar 10 yardas
+round(exp(10*beta.ci),2)
+#si aumentamos la distancia en 10 yardas los momios se reducen entre un 63% y 73%
+
+
+#reducir 10 yardas
+round(exp(-10*beta.ci),2)
+#si reducimos la distancia en 10 yardas la probabilidad de exito aumenta entre un 3.72 y 2.68 veces
+
+#mejor lectura
+as.numeric(rev(round(exp(-10*beta.ci),2)))
+
+#intervalo de confianza de verosimilitud
+beta.ci2 <- confint(mod.fit, parm = "distance", level = 0.95)
+beta.ci2
+#quetanto aumentan los momios por incremento de yardas
+
+#reducir 10 yardas
+as.numeric(rev(round(exp(-10*beta.ci2),2)))
+
+
+install.packages("mcprofile")
+library(mcprofile)
+#hacemos uso de una matriz
+k<- matrix(data = c(0,1), nrow = 1, ncol = 2, byrow = TRUE)
+linear.combo <- mcprofile(object = mod.fit, CM = k)
+ci.log.OR <- confint(object = linear.combo, level = 0.95, adjust = "none")
+names(ci.log.OR)
+as.numeric(rev(exp(-10*ci.log.OR$confint)))
+
+#Estimación de una probabilidad de exito
+#p.hat para una distancia de 20 yardas
+
+linear.pred <- mod.fit$coefficients[1]+mod.fit$coefficients[2]*20
+linear.pred
+exp(linear.pred)/(1+exp(linear.pred))
+
+# a una distancia de 20 yardas hay una probabilidad de anotar de 97.1%
+
+#
+predict.data <- data.frame(distance=20)
+predict(object = mod.fit, newdata = predict.data, type = "link")
+#probabilidad de exito
+predict(object = mod.fit, newdata = predict.data, type = "response")
+#otra forma de encontrarla
+head(placekick$distance==20)
+mod.fit$fitted.values[3]
+
+alpha<-0.05
+linear.pred <- predict(object = mod.fit, newdata = predict.data, type = "link", se = TRUE)
+linear.pred
+
+#estimado de la probabilidad
+pi.hat<-exp(linear.pred$fit)/1+exp(linear.pred$fit)
+CI.lin.pred<-linear.pred$fit+ qnorm(p=c(alpha/2, 1-alpha/2))*linear.pred$se
+CI.pi<-(exp(CI.lin.pred))/(1+exp(CI.lin.pred))
+CI.pi
+
+round(data.frame(predict.data,pi.hat,lower))
+
+#####terminar codigo#####
