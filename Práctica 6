@@ -1,0 +1,99 @@
+---
+title: "Práctica 6"
+author: "Marko Erick Mejia Mañon"
+date: "7 de marzo de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Para realizar los calculos correspondientes se considero 
+```{r}
+install.packages("mgcv")
+library(mgcv)
+```
+
+
+##a)Ajustar un modelo de regresión logística. 
+
+```{r}
+getwd()
+challenger<-read.table(file = "challenger.csv", header = TRUE, sep = ",")
+challenger
+mod.fit<-glm(formula = O.ring ~ Temp + Pressure, family = binomial(link = logit), data = challenger)
+mod.fit<-glm(formula = O.ring ~ Temp + Pressure, family = multinom(link = logit), data = challenger)
+mod.fit 
+```
+
+##b) Realizar LRTs para determinar la importancia de las variables independientes en el modelo.
+```{r}
+#modelo sin presión
+mod.fitT<-glm(formula = O.ring ~ Temp, family = binomial(link = logit), data = challenger)
+#modelo sin temperatura
+mod.fitP<-glm(formula = O.ring ~ Pressure, family = binomial(link = logit), data = challenger)
+#analizando la importancia de la presión, haremos una comparación de H0:b0+b1Temp con Ha:b0+b1Temp+b2Pressure
+anova(mod.fitT,mod.fit,test = "Chisq")
+#analizando la importancia de la temperatura, haremos una comparación de H0:b0+b1Pressure con Ha:b0+b1Pressure+b2Temp
+anova(mod.fitP,mod.fit,test = "Chisq")
+```
+
+##c)En su artículo, los autores removieron la variable Pressure. Con base en los resultados del inciso anterior, explicar por qué pudo haberse tomado esta decisión.
+
+Con base a los resultados anteriores podemos ver que la variable Pressure no es de importancia para el modelo previamente propuesto, ya que la  Pr(>Chi) =  0.2156 > 0.05 mientras que la variable Temp con un valor de 0.005359 < 0.05 por lo que concluimos que si es de importancia.
+
+##d) Ajustar el modelo que sólo considera a Temp como variable independiente.
+```{r}
+mod.fitT<-glm(formula = O.ring ~ Temp, family = binomial(link = logit), data = challenger)
+mod.fitT
+```
+
+##e) Construir dos gráficas, (1) π contra Temp y (2) Número esperado de fallas contra Temp. Usese un rango de temperatura de 31° a 81°.
+
+```{r}
+#Gráfica 1
+pi.poblacional.hat<-mod.fitT$fitted.values
+plot(challenger$Temp, pi.poblacional.hat,col = "blue", xlab = "Temperatura", ylab = "Probabilidades")
+```
+
+```{r}
+#Gráfica 2 (muestrales)
+
+n<-23
+E_pi.poblacional.hat<-n*pi.poblacional.hat
+plot(challenger$Temp,E_pi.poblacional.hat ,col = "blue", xlab = "Temperatura", ylab = "Número esperado",xlim = c(31,81))
+
+```
+
+##f) Incluir las bandas del intervalo de Wald del 95% para π en la gráfica.
+
+```{r}
+ci.pi<-function(newdata, mod.fitT, alpha){
+  linear.pred<-predict(object = mod.fitT, newdata = newdata, type = "link", se = TRUE)
+  CI.lin.pred.lower<-linear.pred$fit - qnorm(p = 1-alpha/2)*linear.pred$se
+  CI.lin.pred.upper<-linear.pred$fit + qnorm(p = 1-alpha/2)*linear.pred$se
+  CI.pi.lower<-exp(CI.lin.pred.lower) / (1 + exp(CI.lin.pred.lower))
+  CI.pi.upper<-exp(CI.lin.pred.upper) / (1 + exp(CI.lin.pred.upper))
+  list(lower = CI.pi.lower, upper = CI.pi.upper)
+}
+
+ci.pi(challenger,mod.fitT,0.05)
+
+curve(expr = ci.pi(data.frame(Temp = x), mod.fitT,0.05)$lower, col = "blue", 
+      lty = "dotdash", add = TRUE,xlim = c(31, 81))
+curve(expr = ci.pi(data.frame(Temp = x), mod.fitT,0.05)$upper, col = "blue", 
+      lty = "dotdash", add = TRUE, xlim = c(31, 81))
+
+
+```
+
+##g) Cuando ocurrío el accidente del Challenger en 1986 la temperatura era de 31°.Estimar la probabilidad de fallo en una junta teórica con esta temperatura. Calcular el intervalo de confianza correspondiente.
+
+```{r}
+
+
+ci.pi(data.frame(Temp = 31),mod.fitT,0.05)
+
+```
