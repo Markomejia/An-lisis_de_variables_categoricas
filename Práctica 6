@@ -95,5 +95,5 @@ curve(expr = ci.pi(data.frame(Temp = x), mod.fitT,0.05)$upper, col = "blue",
 
 
 ci.pi(data.frame(Temp = 31),mod.fitT,0.05)
-
+predict(mod.fitT, data.frame(Temp=31), type='response')
 ```
