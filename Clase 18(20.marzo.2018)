@@ -1,0 +1,92 @@
+placekick<-read.table(file = "Placekick.csv", header = TRUE, sep = ",")
+
+#interacciones permite que existan predictores no lineales no->x1+x2 si->x1*x2
+
+#H0: modelo lineal generalizado con good ~ distance + wind
+#Ha: modelo lineal generalizado con good ~ distance + wind + distance*wind los dos puntos permiten la interacción
+mod.fit.H0 <- glm(good ~ distance + wind, binomial(link = logit), placekick)
+mod.fit.Ha <- glm(good ~ distance + wind + distance:wind, binomial(link = logit), placekick)
+#nos da un prueba de wald
+summary(mod.fit.Ha)
+#como Pr(>|z|) de distance:wind no es menor a 0.05 hay evidencia para rechazar la H0
+#logit(pi) = 5.684 - 0.110*distance + 2.469*wind - 0.083*distance:wind
+#comparación
+#nos da una prueba LRT
+anova(mod.fit.H0,mod.fit.Ha, test = "Chisq")
+#si hay interacción entre viento y distancia utilizando un nivel de significancia de 0.01
+
+#OR razon de momios para viento a una distancia especifica
+#valores estimados de los parametros de regresión
+beta.hat<-mod.fit.Ha$coefficients[2:4]
+beta.hat<-mod.fit.Ha$coefficients[-1]
+
+#tomar un factor c para incrementos
+c<-1
+
+#objeto que tome la columna en lugar de attach
+#aumento de 20 a 60 yardas de 10 en 10
+distance <- seq(20,60,by=10)
+
+#ORestimado
+OR.wind <- exp(c*(beta.hat[2] + beta.hat[3]*distance))
+
+#matriz de varianzas y covarianzas para beta^_1, beta^_2 y beta^_3
+cov.mat<-vcov(mod.fit.Ha)[2:4,2:4]
+
+#Razon de otts
+var.log.OR <- cov.mat[2,2] + distance^2*cov.mat[3,3] + 2*distance*cov.mat[2,3]
+
+#intervalo de confianza
+ci.log.OR.low<-c*(beta.hat[2] + beta.hat[3]*distance) - c*qnorm(p=0.975)*sqrt(var.log.OR)
+ci.log.OR.up<-c*(beta.hat[2] + beta.hat[3]*distance) + c*qnorm(p=0.975)*sqrt(var.log.OR)
+
+data.frame(OR.wind = OR.wind, OR.low = exp(ci.log.OR.low), OR.up = exp(ci.log.OR.up))
+#OR.wind razon de momios, OR.low limite inferior, OR.up limite superior
+
+#para verlo mejor
+cbind(distance, data.frame(OR.wind = OR.wind, OR.low = exp(ci.log.OR.low), OR.up = exp(ci.log.OR.up)))
+#como el 1 esta en el intervalo de 30 yardas no hay evidencia de que el viento no tenga influencia sobre si el gol de campo es exitoso o no
+
+#tomaremos 1/Razon de otts que pasa con la razon de momios si disminuimos a un numero de yardas
+round(data.frame(distance, OR.wind = 1/OR.wind, OR.low = 1/exp(ci.log.OR.up), OR.up = 1/exp(ci.log.OR.low)),2)
+#a mayor distancia es más suceptible la patada a ser influenciada por el viento
+
+#visto con variables categoricas
+#q niveles , q-1 indicadores
+#Niveles  x1   x2   x3
+#A         0    0    0
+#B         1    0    0
+#C         0    1    0
+#D         0    0    1
+
+
+#predictor logit(pi) = b0+b1x1+b2x2+b3x3
+
+tomato<-read.table(file = "TomatoVirus.csv", header = TRUE, sep = ",")
+#infest es una variable categorica con 2 niveles infest 1 e infest 2
+#inft = 1 poner plantas infectadas 2 liberar insectos portadores de virus
+#Control  una variable categorica de como se trataron de controlar como se esparcian los insectos
+#Control = C control quimico, = B control bilogico, = N no se realizo ningun control
+
+#para saber como toma el tipo de variable factor es igual a categorica
+class(tomato$Control)
+#saber los niveles
+levels(tomato$Control)
+#como contara los indicadores
+contrasts(tomato$Control)
+
+
+class(tomato$Infest)
+#saber los niveles
+levels(tomato$Infest)
+#redefinirla como variable categorica
+tomato$Infest<-factor(tomato$Infest)
+class(tomato$Infest)
+levels(tomato$Infest)
+
+#porporción de las plantas que desarrollaron virus
+mod.fit<-glm(Virus8/Plants ~ Infest + Control, family = binomial(link = logit), tomato, weights = Plants)
+summary(mod.fit)
+#solo aparecen infest 2 por que es indicador
+#cuando se utiliza el metodo dos para distribuir el virus la porbabilidad de desarrollar el virus es de 0.2196
+#cuando se utiliza el control quimico C la probabilidad de desarrollar el virus disminuye en 0.7933
