@@ -1,0 +1,93 @@
+tomato<-read.table(file = "TomatoVirus.csv", header = TRUE, sep = ",")
+tomato
+#infest es una variable categorica con 2 niveles infest 1 e infest 2
+#inft = 1 poner plantas infectadas 2 liberar insectos portadores de virus
+#Control  una variable categorica de como se trataron de controlar como se esparcian los insectos
+#Control = C control quimico, = B control bilogico, = N no se realizo ningun control
+
+#para saber como toma el tipo de variable factor es igual a categorica
+class(tomato$Control)
+#saber los niveles
+levels(tomato$Control)
+#como contara los indicadores
+contrasts(tomato$Control)
+#B es llamado nivel base
+
+
+class(tomato$Infest)
+#saber los niveles
+levels(tomato$Infest)
+#redefinirla como variable categorica
+tomato$Infest<-factor(tomato$Infest)
+class(tomato$Infest)
+levels(tomato$Infest)
+
+#porporción de las plantas que desarrollaron virus
+mod.fit<-glm(Virus8/Plants ~ Infest + Control, family = binomial(link = logit), tomato, weights = Plants)
+summary(mod.fit)
+#solo aparecen infest 2 por que es indicador
+#cuando se utiliza el metodo dos para distribuir el virus la porbabilidad de desarrollar el virus es de 0.2196
+#cuando se utiliza el control quimico C la probabilidad de desarrollar el virus disminuye en 0.7933
+
+
+#cambiar nivel base y etiquetas
+temp<-factor(tomato$Control, levels = c("C","B","N"))
+levels(temp)
+
+temp2<-factor(tomato$Control, levels = c("B1","C1","N1"))
+levels(temp2)
+
+#modelo primer argumento = formula
+mod.fit<-glm(Virus8/Plants ~ Infest + Control, family = binomial(link = logit), tomato, weights = Plants)
+summary(mod.fit)
+
+#estimación de un modelo con interacciones
+mod.fit.inter<-glm(Virus8/Plants ~ Infest + Control + Infest:Control, family = binomial(link = logit), tomato, weights = Plants)
+summary(mod.fit.inter)
+
+
+#hipotesis de las interacciones
+#X-3 niveles
+#Z- 3 niveles
+#logit(pi) = b0+b1x1+b2x2+b3z1+b4z2+b5x1z1+b6x1z2+b7x2z1+b8x2z2
+#H0: b5=b6=b7=b8=0
+#Ha: b5!=0 v b6!=0 v b7!=0 v b8!=0 
+
+library(car)
+
+
+#compararemos dos modelos uno con interacciones contra el que no permite interacciones
+#prueba LRT
+Anova(mod.fit.inter)
+#gracias  a la ultima fila podemos saber que hay fuerte evidencia que hay gran interaccion entre infest y conterol
+#se rechaza la hipotesis nula
+
+
+#Momios
+#para infest
+exp(mod.fit$coefficients[2])
+#momio de que se infecten por metodo 2 con respecto al metodo 1
+1/exp(mod.fit$coefficients[2])
+#la posibilidad de que se infecten por metodo uno respecto al metodo dos
+
+attributes(mod.fit$coefficients[2])
+
+#intervalo de Wald
+exp(confint.default(mod.fit,parm="Infest2",level=0.95))
+
+#para infest 1
+1/exp(confint.default(mod.fit,parm="Infest2",level=0.95))
+
+#control quimico respecto a ningun control
+exp(confint.default(mod.fit,parm=c("ControlC","ControlN"),level=0.95))
+#cuando utilizamos un control quimico cuando usamos el control c la probabilidad de desarrollar el virus disminuye
+
+beta.hat<-mod.fit$coefficients[-1]
+
+#comparara ningun control respecto a al control quimico
+exp(beta.hat[3]-beta.hat[2])
+
+cov.mat<-vcov(mod.fit)[2:4,2:4]
+var.N.C.<-cov.mat[3,3]+cov.mat[2,2]-2*cov.mat[3,2]
+CI.betas<-beta.hat[3]-beta.hat[2] + qnorm(p=c(0.025,0.975))*sqrt(var.N.C.)
+exp(CI.betas)
