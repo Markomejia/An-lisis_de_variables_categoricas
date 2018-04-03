@@ -1,0 +1,26 @@
+tomato<-read.table(file = "TomatoVirus.csv", header = TRUE, sep = ",")
+tomato
+
+#modelo sin interacciones
+mod.fit<-glm(Virus8/Plants ~ Infest + Control, family = binomial(link = logit), tomato, weights = Plants)
+
+#modelo con interaccion
+mod.fit.inter<-glm(Virus8/Plants ~ Infest + Control + Infest:Control, family = binomial(link = logit), tomato, weights = Plants)
+
+
+#razon de momios para el modelo con interaccion
+#OR estimada para la variable control
+#como control tienen 3 niveles se usan 2 indicadores
+#para que coicida se eliminara el primer beta
+beta.hat<-mod.fit.inter$coefficients[-1]
+#comparar ningun control  contra el control biologico con infeccion uno
+N.B.Infest2.0<-exp(beta.hat[3])
+summary(mod.fit.inter)
+#comparar ningun control  contra el control biologico con infeccion dos
+N.B.Infest2.1<-exp(beta.hat[3] + beta.hat[5])
+#comparar ningun control  contra el control biologico con infeccion dos
+C.B.Infest2.0<-exp(beta.hat[2])
+
+C.B.Infest2.1<-exp(beta.hat[2] + beta.hat[])
+
+#usar el control c en comparación al control b reduce la probabilidad de contagiarse en un 15%
