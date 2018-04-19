@@ -1,0 +1,61 @@
+#####Prueba de pearson
+#se distribuira como xi^2
+#H0: πij = πi+ . π+j para todo i,j
+#Ha: πij != πi+ . π+j para todo i,j
+
+#estudio si se presenta inchason para un alimento con fibra dietetica
+#redefinimos los niveles de fibra
+diet$fiber<- factor(x= diet$fiber, levels = c("none", "bran", "gum", "both"))
+
+#redefinimos los niveles de bloat
+diet$bloat<- factor(x= diet$bloat, levels = c("none", "low", "medium", "high"))
+
+
+#con los valores anteriormente redefinidos crearemos una tabla
+diet.table<- xtabs(formula = count~fiber + bloat, data = diet)
+diet.table
+
+#H0: πij = πi+ . π+j para todo i,j
+#Ha: πij != πi+ . π+j para todo i,j
+
+#usaremos distintos tipos de comando para lrealizar la prueba de pearson
+
+#prueba de independencia se usa chi es recomendado para muestras suficientemente grandes
+#una muestra grande se puede saber si (ni+ . n+j)/n > 5 si esto no se cumple chi no es del todo fiable
+#para que no corrija la continuidad se usa false
+ind.test<- chisq.test(x= diet.table, correct = F)
+ind.test
+
+##usando el comando summary
+summary(diet.table)
+
+#assocstats este comando no utiliza la prueba de pearson ocupa LRT
+install.packages("vcd")
+library(vcd)
+assocstats(diet.table)
+
+#existe evidencia para rechazar la hipotesis nula
+
+#para tener mas certeza haremos una simulación y realizaremos las misma pruebas 
+#para observar como se ajusta a otras distribciones
+
+#simulación con monte carlo
+n<- sum(diet.table)
+#estimado del valor esperado en pi_ij^2 bajo H0
+pi.hat<-ind.test$expected/n
+pi.hat
+c(pi.hat)
+sum(pi.hat)
+
+#conjunto de datos
+B<-1000
+set.seed(1298)
+#valores aletorios de una multinomial
+#16 filas 1000 columnas
+table.count<-rmultinom(B, size = n, prob = pi.hat )
+#primeros 2 conjuntos simulados
+table.count[,1:2]
+#como se asemeja a c(pi.hat) podemos decir que la simulación va bien
+rowMeans(table.count)/n
+
+#"Realizar prueba con la funcion del correo"
