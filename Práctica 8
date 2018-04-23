@@ -1,0 +1,125 @@
+---
+title: "Práctica 8"
+author: "Marko"
+date: "20 de abril de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1.- Cargar la librería MASS y combinar Pima.tr y Pima.tr2 para definir un data frame llamado “train”. Guardar “Pima.te” en un objeto llamado “test”. Cambiar la codificación de la variable “type” a 0 (no diabéticos) y 1 (diabéticos). Determinar cuántos valores NA existen por columna.
+
+```{r}
+library(MASS)
+train<-as.data.frame(rbind(Pima.tr,Pima.tr2))
+train
+test<-Pima.te
+train$type<-as.numeric(train$type)-1
+train$type
+head(train)
+sum(is.na(train$npreg))
+sum(is.na(train$glu))
+sum(is.na(train$bp))
+sum(is.na(train$skin))
+sum(is.na(train$bmi))
+sum(is.na(train$ped))
+sum(is.na(train$age))
+sum(is.na(train$type))
+sum(is.na(train))
+```
+
+
+2.- Obtenga una gráfica entre pares de variables independientes usando la función “pairs( )”.
+```{r}
+pairs(train)
+```
+
+
+
+3. Ajustar un modelo de regresión logística, un modelo probit y un modelo log-log complementario.
+a) Considerando las independientes “age” y “bmi”
+```{r}
+logit<-glm(type~age+bmi,family = binomial(link = logit),data = train)
+
+probit<- glm(type~age+bmi,family = binomial(link = probit),data = train)
+
+loglog<- glm(type~age+bmi,family = binomial(link = cloglog),data = train)
+
+```
+
+
+b) Considerando las independientes “age” y “bmi” y la interacción entre ellas.
+```{r}
+logit_inter<-glm(type~age+bmi+age:bmi,family = binomial(link = logit),data = train)
+
+probit_inter<- glm(type~age+bmi+age:bmi,family = binomial(link = probit),data = train)
+
+loglog_inter<- glm(type~age+bmi+age:bmi,family = binomial(link = cloglog),data = train)
+
+```
+
+
+4. De acuerdo a los modelos obtenidos en 3, ¿cuál es la predicción de la probabilidad para alguien de 35 años con un bmi de 32?, ¿qué pasa para un bmi de 22?
+
+```{r}
+predict.data <- data.frame(age=35,bmi=32)
+predlog<- predict(logit, newdata=predict.data, type="response" )
+predlog
+predpro<- predict(probit, newdata=predict.data, type="response" )
+predpro
+predlogl<- predict(loglog, newdata=predict.data, type="response" )
+predlogl
+
+#interaccioneas
+predlog_inter<- predict(logit_inter, newdata=predict.data, type="response" )
+predlog_inter
+predpro_inter<- predict(probit_inter, newdata=predict.data, type="response" )
+predpro_inter
+predlogl_inter<- predict(loglog_inter, newdata=predict.data, type="response" )
+predlogl_inter
+
+#bmi=22 
+predict.data <- data.frame(age=35,bmi=22)
+predlog<- predict(logit, newdata=predict.data, type="response" )
+predlog
+predpro<- predict(probit, newdata=predict.data, type="response" )
+predpro
+predlogl<- predict(loglog, newdata=predict.data, type="response" )
+predlogl
+
+#interaccioneas
+predlog_inter<- predict(logit_inter, newdata=predict.data, type="response" )
+predlog_inter
+predpro_inter<- predict(probit_inter, newdata=predict.data, type="response" )
+predpro_inter
+predlogl_inter<- predict(loglog_inter, newdata=predict.data, type="response" )
+predlogl_inter
+```
+
+
+5. Para el modelo de regresión logística, ¿Cuáles son los momios de que una mujer de 55 años y bmi de 37 sea diabética?
+```{r}
+predict.data<- data.frame(age=55,bmi=37)
+pred_m<- predict(logit, newdata=predict.data, type="response" )
+pred_m_inter<- predict(logit_inter, newdata=predict.data, type="response" )
+
+momios<-pred_m/(1-pred_m)
+momios
+momios_inter<-pred_m_inter/(1-pred_m_inter)#con interacción 
+momios_inter
+```
+
+
+6. Con respecto al ejercicio 3, ¿es razonable pensar que existe interacción entre “age” y “bmi”? Justifique.
+
+```{r}
+library(car)
+Anova(logit_inter)
+Anova(probit_inter)
+Anova(loglog_inter)
+```
+
+No existe suficiente información estadistica que demuestre que la interacción entre las variables de años y bmi sea importante
+
