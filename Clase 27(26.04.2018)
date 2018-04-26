@@ -1,0 +1,262 @@
+
+wheat <- read.csv("wheat.csv")
+
+# GrÃ¡ficas
+###########
+# GrÃ¡fica de "Estrellas"
+x11(width = 7, height = 6, pointsize = 12)
+
+stars(x = wheat[order(wheat$type),-1], ncol = 20, key.loc = c(10, 0), 
+      draw.segments=TRUE, label = NULL, cex=0.75)
+################################
+# GrÃ¡fica de coordenadas paralelas
+
+library(package = MASS) 
+
+x11(width = 10, height = 6, pointsize = 12)
+
+# Redefiniendo los datos para la variable "class"
+
+wheat2<-data.frame(kernel = 1:nrow(wheat), wheat[,2:6],  
+                   class.new = ifelse(test = wheat$class == "hrw",
+                                      yes = 0, no = 1))
+head(wheat2)
+
+# Colores por condiciÃ³n:
+wheat.colors<-ifelse(test = wheat$type=="Healthy", yes = "black", 
+                     no = ifelse(test = wheat$type=="Sprout", yes = "red", 
+                                 no = "green"))
+# Tipo de recta por condiciÃ³n:
+wheat.lty<-ifelse(test = wheat$type=="Healthy", yes = "solid", 
+                  no = ifelse(test = wheat$type=="Sprout", yes = "longdash", no = "dotdash"))
+# pdf(file = "c:\\figures\\Figure3.2color.pdf", width = 7, height = 6, colormodel = "cmyk")  
+parcoord(x = wheat2, col = wheat.colors, lty = wheat.lty)  # Plot
+legend(x = 6.15, y = 0.75, legend = c("Healthy", "Sprout", "Scab"), lty = c("solid", "longdash", "dotdash"),
+       col=c("black", "red", "green"), cex=0.8, bty="n")
+
+# ObservaciÃ³n con el menor peso
+wheat[wheat$weight == min(wheat2$weight),]  # 269
+order(wheat$size)  # 269 es el segundo grano mÃ¡s pequeÃ±o
+
+# Para resaltar la observaciÃ³n #269 en la grÃ¡fica
+wheat[269,]  # scab
+wheat.colors<-ifelse(test = wheat$type=="Healthy", yes = "black", 
+                     no = ifelse(test = wheat$type=="Sprout", yes = "red", no = "green"))
+wheat.colors[269]<-"purple"
+line.width<-c(rep(x = 1, times = 268), 10, rep(x = 1, times = 6))            
+parcoord(x = wheat2, col = wheat.colors, lwd = line.width, lty = wheat.lty, 
+         main = "GrÃ¡fica de coordenadas paralelas - grano 269 resaltado")
+legend(locator(1), legend=c("Healthy", "Sprout", "Scab", "Kernel 269"), lty = c("solid", "longdash", "dotted", "dotted"), 
+       col=c("black", "red", "green", "purple"), cex=0.75, bty="n", lwd = c(1, 1, 1, 10)) 
+
+# Ordenar por tipo de grano
+wheat.colors2<-ifelse(test = wheat$type=="Healthy", yes = 1, 
+                      no = ifelse(test = wheat$type=="Sprout", yes = 2, no = 3))
+wheat3<-data.frame(wheat.colors2, wheat2)     
+x11(width = 7, height = 7, pointsize = 9)         
+#gráfica
+parcoord(x = wheat3[order(wheat.colors2),], col = wheat.colors[order(wheat.colors2)], 
+         main = "GrÃ¡fica de coordenadas paralelas - clasificado por tipo")
+#localizar un punto seleccionado
+legend(locator(1), legend=c("Healthy", "Sprout", "Scab"), lty=c(1,1,1), col=c("black", "red", "green"), cex=1, bty="n") 
+
+# Forma alterna
+install.packages("iplots")
+library(iplots)  
+ipcp(wheat3[order(wheat.colors2),])
+
+###################################################################################
+# AnÃ¡lisis de componentes principales
+
+save<-princomp(formula = ~ density + class.new + hardness + size + weight + moisture, data = wheat2, 
+               cor = TRUE, scores = TRUE)
+summary(save, loadings = TRUE, cutoff = 0.0)
+
+par(pty = "s")
+wheat.colors<-ifelse(test = wheat$type=="Healthy", yes = "black", 
+                     no = ifelse(test = wheat$type=="Sprout", yes = "red", no = "green"))
+symbols(x = save$scores[,1], y = save$scores[,2], circles = save$scores[,3]-min(save$scores[,3]), 
+        inches=0.25, xlab = "Componente principal 1", ylab = "Componente Principal 2", fg = wheat.colors, 
+        main = "GrÃ¡fica de burbujas")  
+abline(h = 0, lty = 1, lwd = 2)  
+abline(v = 0, lty = 1, lwd = 2)  
+text(x = save$scores[,1], y = save$scores[,2], col = 2, cex = 0.5) 
+legend(locator(1), legend=c("Healthy", "Sprout", "Scab"), pch = c(1,1,1), 
+       col=c("black", "red", "green"), cex=1, bty="n") 
+
+
+###################################################################################
+# Modelo de regresiÃ³n multinomial  
+#libreri de redes neuronales
+library(nnet)
+
+levels(wheat$type)  #Shows the 3 categories
+#con base en los niveles de la variable type tomaremos como base healthy
+
+# EstimaciÃ³n del modelo
+#queremos que cierto grano sea de algun tipo en especial
+mod.fit<-multinom(formula = type ~ class + density + hardness + size + weight + moisture, data=wheat)
+summary(mod.fit)
+#se crea una variable indicador classsrw
+#para los momios se utilizara el apartado de coeficientes 
+
+# Revisar las funciones "mÃ©todo"
+class(mod.fit)
+methods(class = multinom)
+sqrt(vcov(mod.fit)[2,2])
+
+
+################################
+# Prueba de hipÃ³tesis
+H0:B21=0
+H0:B21!=0
+# Prueba de Wald
+sum.fit<-summary(mod.fit)
+test.stat<-sum.fit$coefficients/sum.fit$standard.errors
+p.value<-2*(1-pnorm(q = abs(test.stat), mean = 0, sd = 1))
+round(test.stat,2)
+round(p.value,2)
+#se revisaran los valor p.value y si es menor a 0.05 se rechza H0 si no sucede
+#existe evidencia de que la ariable no sea de importancia
+
+# LRT para class:
+mod.fit.Ho<-multinom(formula = type ~ density + hardness + size + weight + moisture, data=wheat)
+anova(mod.fit.Ho, mod.fit)   
+install.packages("car")
+library(car)
+Anova(mod.fit)
+qchisq(p = 0.95, df = 2)
+
+# InformaciÃ³n adicional
+G.sq.Ho<-mod.fit.Ho$deviance 
+G.sq.Ha<-mod.fit$deviance 
+G.sq<-G.sq.Ho-G.sq.Ha
+p.value<-1-pchisq(q = G.sq, df = 2)
+data.frame(G.sq.Ho, G.sq.Ha, G.sq, p.value, df = 2)
+
+
+################################
+# Probabilidad estimada de pertenecer a una categorÃ­a
+#por fila
+# pi^
+pi.hat<-predict(object = mod.fit, newdata = wheat, type = "probs")
+head(pi.hat)
+#al grupo al que pertenece
+head(predict(object = mod.fit, newdata = wheat, type = "class"))
+
+
+# PredicciÃ³n con base en "class"
+predict(object = mod.fit, newdata = wheat[1,], type = "class")
+
+##############################
+# Intervalos de confianza para pi_j
+
+# Valores observados
+x1<-0;          x2<-wheat[1,2]; x3<-wheat[1,3]
+x4<-wheat[1,4]; x5<-wheat[1,5]; x6<-wheat[1,6]
+
+# Cadenas de caracteres
+scab<-"exp(b20 + b21*x1 + b22*x2 + b23*x3 + b24*x4 + b25*x5 + b26*x6)"
+sprout<-"exp(b30 + b31*x1 + b32*x2 + b33*x3 + b34*x4 + b35*x5 + b36*x6)"
+
+# pi^_Healthy
+
+g.healthy<-paste("1 / (1 + ", scab, "+", sprout, ")")
+g.healthy
+calc.healthy<-deltaMethod(object =  mod.fit, g = g.healthy,
+                          parameterNames = c("b20", "b21", "b22", "b23", "b24", "b25", "b26",
+                                             "b30", "b31", "b32", "b33", "b34", "b35", "b36"))
+names(calc.healthy)
+calc.healthy$Estimate  # pi^_Healthy
+calc.healthy$SE        # sqrt(Var^(pi^_Healthy))
+alpha<-0.05
+calc.healthy$Estimate + qnorm(p = c(alpha/2, 1-alpha/2))*calc.healthy$SE
+
+# pi^_Scab
+g.scab<-paste(scab, "/ (1 + ", scab, "+", sprout, ")")
+g.scab
+calc.scab<-deltaMethod(object =  mod.fit, g = g.scab,
+                       parameterNames = c("b20", "b21", "b22", "b23", "b24", "b25", "b26",
+                                          "b30", "b31", "b32", "b33", "b34", "b35", "b36"))
+calc.scab
+calc.scab$Estimate + qnorm(p = c(alpha/2, 1-alpha/2))*calc.scab$SE
+
+# pi^_Sprout
+g.sprout<-paste(sprout, "/ (1 + ", scab, "+", sprout, ")")
+g.sprout
+calc.sprout<-deltaMethod(object =  mod.fit, g = g.sprout,
+                         parameterNames = c("b20", "b21", "b22", "b23", "b24", "b25", "b26",
+                                            "b30", "b31", "b32", "b33", "b34", "b35", "b36"))
+calc.sprout
+calc.sprout$Estimate + qnorm(p = c(alpha/2, 1-alpha/2))*calc.sprout$SE
+
+
+################################
+# Revisar contenido de mod.fit
+
+names(mod.fit)  # No existe objeto "coefficients" - usar coefficients(mod.fit) 
+coefficients(mod.fit) 
+
+mod.fit$deviance
+mod.fit$convergence
+head(mod.fit$fitted.values) 
+
+# ResÃ­duos
+head(mod.fit$residuals, n = 3)
+head(residuals(mod.fit), n = 3)
+c(1,0,0) - mod.fit$fitted.values[1,]  
+
+
+################################
+# GrÃ¡fica del modelo que sÃ³lo considera "density" como variable independiente
+
+x11(width = 7, height = 6, pointsize = 12)
+
+# EstimaciÃ³n del modelo
+mod.fit.nom.density<-multinom(formula = type ~ density, data = wheat)
+summary(mod.fit.nom.density)
+beta.hat<-coefficients(mod.fit.nom.density)
+
+#  pdf(file = "c:\\figures\\Figure3.3color.pdf", width = 7, height = 6, colormodel = "cmyk")   
+curve(expr = 1/(1 + exp(beta.hat[1,1] + beta.hat[1,2]*x) + exp(beta.hat[2,1] + beta.hat[2,2]*x)), ylab = expression(hat(pi)), xlab = "Density",
+      xlim = c(min(wheat$density), max(wheat$density)), col = "black", lty = "solid", lwd = 2, n = 1000, type = "n",
+      panel.first = grid(col = "gray", lty = "dotted"))
+# Graficar cada pi_j
+curve(expr = 1/(1 + exp(beta.hat[1,1] + beta.hat[1,2]*x) + exp(beta.hat[2,1] + beta.hat[2,2]*x)),
+      col = "black", lty = "solid", lwd = 2, n = 1000, add = TRUE,
+      xlim = c(min(wheat$density[wheat$type == "Healthy"]), max(wheat$density[wheat$type == "Healthy"])))  # Healthy
+curve(expr = exp(beta.hat[1,1] + beta.hat[1,2]*x)/(1 + exp(beta.hat[1,1] + beta.hat[1,2]*x) + exp(beta.hat[2,1] + beta.hat[2,2]*x)),
+      col = "green", lty = "dotdash", lwd = 2, n = 1000, add = TRUE,
+      xlim = c(min(wheat$density[wheat$type == "Scab"]), max(wheat$density[wheat$type == "Scab"])))  # Scab
+curve(expr = exp(beta.hat[2,1] + beta.hat[2,2]*x)/(1 + exp(beta.hat[1,1] + beta.hat[1,2]*x) + exp(beta.hat[2,1] + beta.hat[2,2]*x)),
+      col = "red", lty = "longdash", lwd = 2, n = 1000, add = TRUE,
+      xlim = c(min(wheat$density[wheat$type == "Sprout"]), max(wheat$density[wheat$type == "Sprout"])))  # Sprout
+legend(x = 1.4, y = 0.8, legend=c("Healthy", "Sprout", "Scab"), lty=c("solid","longdash","dotdash"),
+       col=c("black","red","green"), bty="n", lwd = c(2,2,2), seg.len = 4)
+# dev.off()  
+
+# VerificaciÃ³n
+density.values<-seq(from = 0.8, to = 1.6, by = 0.1)
+data.frame(density.values, round(predict(object = mod.fit.nom.density, newdata = data.frame(density = density.values), type = "probs"), 2))
+
+################################
+# InformaciÃ³n adicional
+
+# Modelo con predictor no lineal
+mod.fit.trans1<-multinom(formula = type ~ class + density + I(density^2) + density:class, data=wheat)  # No converge
+#no alcanza convergencia 
+summary(mod.fit.trans1)
+#modificación para obtener fiabilidad
+mod.fit.trans2<-multinom(formula = type ~ class + density + I(density^2) + density:class, data=wheat,
+                         maxit = 1000)  # Convergencia
+summary(mod.fit.trans2)
+
+# Cambio de nivel base
+wheat.original<-wheat  # guardar el formato original
+#cambiamos la categoria base
+wheat$type<-relevel(x = wheat$type, ref = "Sprout") 
+levels(wheat$type)
+mod.fit.relevel<-multinom(formula = type ~ class + density + hardness + size + weight + moisture, data=wheat)
+summary(mod.fit.relevel)
+wheat<-wheat.original  # Regresar al formato original
+
