@@ -163,3 +163,34 @@ library(car)
 Anova(mod.fit.nom.inter)
 logLik(mod.fit.nom.inter)
 
+#####################################################################
+# Tablas de contingencia
+
+library(MASS)
+levels(diet$bloat)
+
+mod.fit.ord<-polr(formula = bloat ~ fiber, weights = count, data=diet, method = "logistic")
+summary(mod.fit.ord)
+library(car)
+Anova(mod.fit.ord)  # LRT
+
+# ORs
+round(exp(-coefficients(mod.fit.ord)), 2)
+round(1/exp(-coefficients(mod.fit.ord)), 2)
+
+conf.beta<-confint(object = mod.fit.ord, level = 0.95)
+ci<-exp(-conf.beta)
+round(data.frame(low = ci[,2], up = ci[,1]), 2)
+round(data.frame(low = 1/ci[,1], up = 1/ci[,2]), 2)
+
+diet$fiber2<-relevel(x = diet$fiber, ref = "bran")
+mod.fit.ord2<-polr(formula = bloat ~ fiber2, weights = count, data=diet, method = "logistic")
+conf.beta2<-confint(object = mod.fit.ord2, level = 0.95)
+ci2<-exp(-conf.beta2)
+round(data.frame(low = ci2[,2], up = ci2[,1]), 2)
+round(data.frame(low = 1/ci2[,1], up = 1/ci2[,2]), 2)
+
+
+
+
+
