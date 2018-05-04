@@ -1,0 +1,31 @@
+cereal<- read.csv("C:/Users/USUARIO/Downloads/cereal_dillons.csv")
+
+1. Para poder maximizar las ventas, los art´ıculos en los supermercados en los estantes
+de ,manera estrat´egica para llamar la atenci´on de los clientes. Suponga que se desea
+analizar la situaci´on para el cereal procesado. Al colocar ciertas cajas de cereal en
+estanter´ıas espec´ıficas, las tiendas podr´ıan atraer m´as atenci´on a estos productos.
+Estos datos est´an dados en el archivo cereal dillons.csv . La variable dependiente
+es el n´umero de estanter´ıa, el cual est´a marcado de abajo (1) a arriba (4). Las variables
+independientes son sugar, fat y sodium content. Usando estos datos, complete lo
+siguiente:
+  
+(a) Las variables independientes necesitan ser redefinidas antes de continuar. Div´ıdase
+cada variable dependiente por su tama˜no de porci´on para tener en cuenta los
+diferentes tama˜nos de porci´on entre los cereales. Tambi´en re-esc´alese cada variable
+para ser un valor num´erico entre 0 y 1. Se muestra el c´odigo para redefinir
+los datos una vez que se import´o el archivo al objeto cereal :
+  
+stand01 <- function( x ) { ( x - min( x ) ) /( max( x ) - min( x ) ) }
+cereal2 <- data.frame( Shelf = cereal$Shelf ,
+                       sugar = stand01( x = cereal$sugar_g / cereal$size_g ) ,
+                       fat = stand01( x = cereal$fat_g / cereal$size_g ) ,
+                       sodium = stand01( x = cereal$sodium_mg / cereal$size_g ) )  
+
+(b) Se muestra el c´odigo para obtener gr´aficas de cajas para la variable que implica
+a sugar:
+  
+boxplot(formula = sugar ∼ Shelf , data = cereal2 ,
+          ylab = "Sugar" , xlab = "Shelf" , pars = list( outpch = NA ) )
+stripchart( x = cereal2$sugar ∼ cereal2$Shelf , lwd = 2 ,
+            col="red" , method = "jitter" , vertical = TRUE ,
+            pch = 1 , add = TRUE )
