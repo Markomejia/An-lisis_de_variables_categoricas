@@ -23,33 +23,33 @@ assocstats(x = diet.table)
 
 
 #####################################################################
-#Simulación de Monte Carlo
+#SimulaciÃ³n de Monte Carlo
 
-n<-sum(diet.table)  # Tamaño de muestra
+n<-sum(diet.table)  # TamaÃ±o de muestra
 pi.hat<-ind.test$expected/n  # Estimado del valor esperado pi^_ij bajo Ho
 pi.hat
 c(pi.hat) 
-sum(pi.hat)  # comprobación
+sum(pi.hat)  # comprobaciÃ³n
 
 
-B<-10000  # Número de conjuntos de datos simulados
+B<-10000  # NÃºmero de conjuntos de datos simulados
 set.seed(1298)
 table.count<-rmultinom(n = B, size = n, prob = pi.hat)  
 table.count[,1:2]  
 
 rowMeans(table.count)/n
 
-# Función que calcula X^2 para un conjunto de datos y que revisa el tamaño de la tabla de contingencia
+# FunciÃ³n que calcula X^2 para un conjunto de datos y que revisa el tamaÃ±o de la tabla de contingencia
 calc.stat<-function(data) {
   c.table<-array(data = data, dim=c(4,4), dimnames = list(fiber = c("bran", "gum", "combo", "control"),
                                                           bloat = c("high", "medium", "low", "none")))
   ind.test<-chisq.test(c.table, correct = FALSE)
-  ck.0.row<-sum(rowSums(c.table) == 0)  # Número de filas con todas las entradas 0
-  ck.0.col<-sum(colSums(c.table) == 0)  # Número de columnas con todas las entradas 0
+  ck.0.row<-sum(rowSums(c.table) == 0)  # NÃºmero de filas con todas las entradas 0
+  ck.0.col<-sum(colSums(c.table) == 0)  # NÃºmero de columnas con todas las entradas 0
   c(ind.test$statistic, ck.0.row, ck.0.col)
 }
 
-calc.stat(data = table.count[,1]) # Ejemplo de aplicación de la función
+calc.stat(data = table.count[,1]) # Ejemplo de aplicaciÃ³n de la funciÃ³n
 
 # Calcular X^2* para cada conjunto de datos
 save.star<-apply(X = table.count, MARGIN = 2, FUN = calc.stat)
@@ -64,7 +64,7 @@ X.sq.star<-save.star[1, save.star[2,] == 0 & save.star[3,] == 0]
 
 
 #####################################################################
-# Gráficas
+# GrÃ¡ficas
 
 x11(width = 10, height = 6, pointsize = 12)
 
@@ -75,7 +75,7 @@ df<-9
 hist(x = X.sq.star, main = "Histogram", freq = FALSE, xlab = expression(X^"2*"))
 curve(expr = dchisq(x = x, df = df), col = "red", add = TRUE)
 
-# Comparación de las distribuciones acumuladas
+# ComparaciÃ³n de las distribuciones acumuladas
 plot.ecdf(x = X.sq.star, verticals = TRUE, do.p = FALSE, main = "CDFs", lwd = 2, col = "black",
           xlab = expression(X^"2*"), panel.first = grid(col="gray", lty="dotted"),
           ylab = "CDF")
@@ -85,12 +85,12 @@ legend(x = 15, y = 0.4, legend = c(expression(X^"2*"), expression(chi[9]^2)), lw
 
 
 #####################################################################
-# Modelo de regresión multinomial
+# Modelo de regresiÃ³n multinomial
 
 library(nnet)
 library(car)
 
-# Estimación del modelo
+# EstimaciÃ³n del modelo
 mod.fit.nom<-multinom(formula = bloat ~ fiber, weights = count, data = diet)
 summary(mod.fit.nom)
 logLik(mod.fit.nom)
@@ -146,17 +146,17 @@ round(exp(conf.beta[2:4,,3]),2)
 
 
 #####################################################################
-# Regresión multinomial e interacciones
+# RegresiÃ³n multinomial e interacciones
 
 diet$bran<-factor(ifelse(test = diet$fiber == "bran" | diet$fiber == "both", yes = "yes", no = "no"))
 diet$gum<-factor(ifelse(test = diet$fiber == "gum" | diet$fiber == "both", yes = "yes", no = "no"))
 diet
 
-# Modelo de regresión multinomial sin interacciones
+# Modelo de regresiÃ³n multinomial sin interacciones
 #mod.fit.nom.main<-multinom(formula = bloat ~ bran + gum, weights = count, data = diet)
 #summary(mod.fit.nom.main)
 
-# Modelo de regresión multinomial con interacciones
+# Modelo de regresiÃ³n multinomial con interacciones
 mod.fit.nom.inter<-multinom(formula = bloat ~ bran + gum + bran:gum, weights = count, data = diet)
 summary(mod.fit.nom.inter)
 library(car)  
@@ -191,6 +191,44 @@ round(data.frame(low = ci2[,2], up = ci2[,1]), 2)
 round(data.frame(low = 1/ci2[,1], up = 1/ci2[,2]), 2)
 
 
+#####################################################################
+# Modelo de momios no proporcionales
+
+install.packages("VGAM")
+library(VGAM)  
+
+# Primero se ajusta un modelo de momios proporcionales
+saveELM <- diet$bloat #guardar el objeto sin orden por si hay que relizar una corrección
+diet$bloat <- ordered(diet$bloat) #ordenamos la variable bloat
+
+mod.fit.po<-vglm(formula = bloat ~ fiber, family = cumulative(parallel = TRUE),
+                 weights = count, data = diet[diet$count != 0,])
+summary(mod.fit.po)
+#family cumulative es para obtener probabilidad acumulativa y parallel es para contemplar el modelo de momios proporcionales
+#weightds para contar el número de exitos en el numero de ensayos
+slotNames(mod.fit.po)  # estructura parecida a names( ) 
+mod.fit.po@coefficients
+mod.fit.po@df.residual
+#showMethods(class = "vglm") # Parecido a method(class = " ") in 
+
+mod.fit.npo<-vglm(formula = bloat ~ fiber, family = cumulative(parallel = FALSE),
+                  weights = count, data = diet[diet$count != 0,])
+summary(mod.fit.npo) 
+round(mod.fit.npo@coefficients, 2)
+
+#anova(mod.fit.po, mod.fit.npo)
+tran.LR<-deviance(mod.fit.po) - deviance(mod.fit.npo)
+df<-mod.fit.po@df.residual - mod.fit.npo@df.residual
+p.value<-1 - pchisq(q = tran.LR, df = df)
+data.frame(tran.LR, df, p.value)
+#no hay evidencia para sumir que no esta en un modelo de momios proporcionales
+
+lrtest(mod.fit.npo, mod.fit.po) # Forma alterna
+
+# EstimaciÃ³n de pi_j
+predictvglm(object = mod.fit.po, newdata = data.frame(fiber = "bran"))
+predictvglm(object = mod.fit.po, newdata = data.frame(fiber = "bran"), type = "response")
+predictvglm(object = mod.fit.po, newdata = data.frame(fiber = "bran"), se.fit = TRUE)
 
 
 
