@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-cereal <- read.csv ("C://Users//USUARIO//Downloads//cereal_dillons.csv")
+cereal <- read.csv ("C://Users//Home//Downloads//cereal_dillons.csv")
 ```
 
 1. Para poder maximizar las ventas, los artículos en los supermercados y los estantes
@@ -18,11 +18,11 @@ de, manera estratégica para llamar la atención de los clientes. Suponga que se
 analizar la situacion para el cereal procesado. Al colocar ciertas cajas de cereal en
 estanteriales especiales, las tiendas podrian atraer a mis clientes.
 Estos datos están en el archivo cereal dillons.csv. La variable dependiente
-es el n'umero de estanterıa, el cual está marcado de abajo (1) a arriba (4). Las variables
+es el n'umero de estanteria, el cual está marcado de abajo (1) a arriba (4). Las variables
 azúcar de hijo independiente, contenido de grasa y sodio. Usando estos datos, completa lo
 siguiente:
   
-(a) Las variables independientes necesitan ser redefinidas antes de continuar. Div'ıdase
+(a) Las variables independientes necesitan ser redefinidas antes de continuar. Div'idase
 cada variable depende de su tamao de porciento para tener en cuenta los
 diferentes tamaños de carne entre los cereales. Tambi'en re-esc'alese cada variable
 para ser un valor numérico entre 0 y 1. Se muestra el cáncer para redefinir
@@ -42,21 +42,20 @@ cereal2 <- data.frame( Shelf = cereal$Shelf ,
 un azúcar:
   
 ```{r}
-boxplot(formula = sugar ∼ Shelf , data = cereal2 ,
+boxplot(formula = sugar ??? Shelf , data = cereal2 ,
           ylab = "Sugar" , xlab = "Shelf" , pars = list( outpch = NA ) )
-stripchart( x = cereal2$sugar ∼ cereal2$Shelf , lwd = 2 ,
+stripchart( x = cereal2$sugar ??? cereal2$Shelf , lwd = 2 ,
             col="red" , method = "jitter" , vertical = TRUE ,
             pch = 1 , add = TRUE )
 ```
   
-(c) La variable dependiente tiene valores 1, 2, 3, 4. Explique en qu ́e situaci ́on podr ́ıa
+(c) La variable dependiente tiene valores 1, 2, 3, 4. Explique en qu ??e situaci ??on podr ??ia
 interesar el orden de estos valores.
-```{r}
 
-```
+nos puede ayudar a obtener un modelo que explique las probabilidades acumuladas
 
 
-(d) Estimar un modelo de regresi ́on multinomial con predictor lineal que considere a las variables sugar , fat y sodium . Realizar LRTs para verificar la importancia de cada una de estas variables.
+(d) Estimar un modelo de regresi ??on multinomial con predictor lineal que considere a las variables sugar , fat y sodium . Realizar LRTs para verificar la importancia de cada una de estas variables.
 ```{r}
 mod.fit.nom<-multinom(formula = Shelf ~ sugar_g + fat_g + sodium_mg , data = cereal)
 summary(mod.fit.nom)
@@ -74,6 +73,7 @@ Anova(mod.fit.nom_int)
 (f) Estimar las razones de momios y los intervalos de confianza para cada una de las variables independientes.
 
 ```{r}
+int_conf<-confint(object = mod.fit.nom_int, level = 0.95)
+int_conf
 
 ```
-
