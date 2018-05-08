@@ -1,31 +1,79 @@
-cereal<- read.csv("C:/Users/USUARIO/Downloads/cereal_dillons.csv")
+---
+title: "Práctica 9"
+author: "Marko"
+date: "6 de mayo de 2018"
+output: html_document
+---
 
-1. Para poder maximizar las ventas, los art´ıculos en los supermercados en los estantes
-de ,manera estrat´egica para llamar la atenci´on de los clientes. Suponga que se desea
-analizar la situaci´on para el cereal procesado. Al colocar ciertas cajas de cereal en
-estanter´ıas espec´ıficas, las tiendas podr´ıan atraer m´as atenci´on a estos productos.
-Estos datos est´an dados en el archivo cereal dillons.csv . La variable dependiente
-es el n´umero de estanter´ıa, el cual est´a marcado de abajo (1) a arriba (4). Las variables
-independientes son sugar, fat y sodium content. Usando estos datos, complete lo
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+cereal <- read.csv ("C://Users//USUARIO//Downloads//cereal_dillons.csv")
+```
+
+1. Para poder maximizar las ventas, los artículos en los supermercados y los estantes
+de, manera estratégica para llamar la atención de los clientes. Suponga que se desea
+analizar la situacion para el cereal procesado. Al colocar ciertas cajas de cereal en
+estanteriales especiales, las tiendas podrian atraer a mis clientes.
+Estos datos están en el archivo cereal dillons.csv. La variable dependiente
+es el n'umero de estanterıa, el cual está marcado de abajo (1) a arriba (4). Las variables
+azúcar de hijo independiente, contenido de grasa y sodio. Usando estos datos, completa lo
 siguiente:
   
-(a) Las variables independientes necesitan ser redefinidas antes de continuar. Div´ıdase
-cada variable dependiente por su tama˜no de porci´on para tener en cuenta los
-diferentes tama˜nos de porci´on entre los cereales. Tambi´en re-esc´alese cada variable
-para ser un valor num´erico entre 0 y 1. Se muestra el c´odigo para redefinir
-los datos una vez que se import´o el archivo al objeto cereal :
+(a) Las variables independientes necesitan ser redefinidas antes de continuar. Div'ıdase
+cada variable depende de su tamao de porciento para tener en cuenta los
+diferentes tamaños de carne entre los cereales. Tambi'en re-esc'alese cada variable
+para ser un valor numérico entre 0 y 1. Se muestra el cáncer para redefinir
+los datos una vez que se importa el archivo al objeto cereal:
   
+
+```{r}
 stand01 <- function( x ) { ( x - min( x ) ) /( max( x ) - min( x ) ) }
 cereal2 <- data.frame( Shelf = cereal$Shelf ,
                        sugar = stand01( x = cereal$sugar_g / cereal$size_g ) ,
                        fat = stand01( x = cereal$fat_g / cereal$size_g ) ,
                        sodium = stand01( x = cereal$sodium_mg / cereal$size_g ) )  
 
-(b) Se muestra el c´odigo para obtener gr´aficas de cajas para la variable que implica
-a sugar:
+```
+
+(b) Se muestra el cómic para obtener las cajas de las cajas para la variable que implica
+un azúcar:
   
+```{r}
 boxplot(formula = sugar ∼ Shelf , data = cereal2 ,
           ylab = "Sugar" , xlab = "Shelf" , pars = list( outpch = NA ) )
 stripchart( x = cereal2$sugar ∼ cereal2$Shelf , lwd = 2 ,
             col="red" , method = "jitter" , vertical = TRUE ,
             pch = 1 , add = TRUE )
+```
+  
+(c) La variable dependiente tiene valores 1, 2, 3, 4. Explique en qu ́e situaci ́on podr ́ıa
+interesar el orden de estos valores.
+```{r}
+
+```
+
+
+(d) Estimar un modelo de regresi ́on multinomial con predictor lineal que considere a las variables sugar , fat y sodium . Realizar LRTs para verificar la importancia de cada una de estas variables.
+```{r}
+mod.fit.nom<-multinom(formula = Shelf ~ sugar_g + fat_g + sodium_mg , data = cereal)
+summary(mod.fit.nom)
+Anova(mod.fit.nom)
+```
+
+(e) Mostrar que no hay interacciones significativas entre las variables independientes.
+```{r}
+mod.fit.nom_int<-multinom(formula = Shelf ~ sugar_g + fat_g + sodium_mg + sugar_g:fat_g + fat_g:sodium_mg + sugar_g:sodium_mg, data = cereal)
+summary(mod.fit.nom_int)
+Anova(mod.fit.nom_int)
+```
+
+
+(f) Estimar las razones de momios y los intervalos de confianza para cada una de las variables independientes.
+
+```{r}
+
+```
+
