@@ -1,0 +1,37 @@
+alldata <- read.csv("C:/Users/USUARIO/Downloads/PolIdeolData.csv")
+View(alldata)
+
+#asociación entre tres variables
+# sexo, ideología politica (se tomara como vatriable nominal) y partido politico tabla de (2x2x5)
+#Modelo saturado: GPI
+mod.sat <- glm(count ~ gender*party*ideol, family = poisson("log"),alldata)
+#Modelo de asociación homogénea: GP, GI, PI
+mod.hom <-glm(count ~ (gender+party+ideol)^2, family = poisson("log"),alldata)
+
+#comparar mod.saturado y mod.homogeneo
+anova(mod.hom, mod.sat, test = "Chisq")
+# no hay evidencia suficiente para rechazar la hipotesis nula
+#H0: B_jk^PI=0, j=D,R, k=1,2,3,4,5
+#el modelo homogeneo se ajusta mejor al saturado
+
+#Modelo que sólo concidea asociación PI: G, PI
+mod.hom.PI <-glm(count ~ gender+party*ideol, family = poisson("log"),alldata)
+
+anova(mod.hom.PI, mod.hom, test = "Chisq")
+# (GP y GI) contribuyen 
+
+#Modelo de interdependencia mutua: G, P, I
+mod.indep <-glm(count ~ gender+party+ideol, family = poisson("log"),alldata)
+
+anova(mod.indep ,mod.hom.PI, test = "Chisq")
+#el modelo de interdependencia converge a 0 por lo que es facil rechazarlo
+
+#mostrar los coefficientes
+round(summary(mod.hom)$coefficients,2)
+#importancia
+Anova(mod.hom)
+#PI es muy significativa 
+
+
+#para obtener los momios
+exp(0.276)
